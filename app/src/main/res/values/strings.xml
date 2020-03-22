@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">No Foreign Land</string>
+    <string name="no_connection_message">Check your internet connection</string>
+    <string name="no_comments">No comments yet!</string>
+</resources>

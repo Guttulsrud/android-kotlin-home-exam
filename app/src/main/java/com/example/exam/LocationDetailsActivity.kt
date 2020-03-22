@@ -1,14 +1,14 @@
 package com.example.exam
 
 import android.os.Bundle
+import android.os.Handler
 import android.text.method.ScrollingMovementMethod
-import android.view.View
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
 import com.example.exam.adapters.CustomViewHolder
 import com.example.exam.gson.LocationDetails
 import com.google.gson.GsonBuilder
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_location_details.*
 import okhttp3.*
 import java.io.IOException
@@ -28,6 +28,7 @@ class LocationDetailsActivity : AppCompatActivity() {
         supportActionBar?.title = navBarTitle
         location_name.text = navBarTitle
         location_description.movementMethod = ScrollingMovementMethod()
+        location_description.resetLoader()
 
 
         fetchJson()
@@ -53,18 +54,21 @@ class LocationDetailsActivity : AppCompatActivity() {
                     val body = response.body?.string()
                     val gson = GsonBuilder().create()
                     val place = gson.fromJson(body, LocationDetails::class.java).place
-                    val comments = place.comments
-                    val imgUrl = place.banner
 
 
                     runOnUiThread {
                         try {
-                            if (comments != "<p></p>") {
-                                location_description.text = HtmlCompat.fromHtml(comments, HtmlCompat.FROM_HTML_MODE_LEGACY);
+                            if (place.comments != "<p></p>") {
+                                location_description.text = HtmlCompat.fromHtml(place.comments, HtmlCompat.FROM_HTML_MODE_LEGACY)
                             } else {
                                 location_description.text = "No comments!"
                             }
 
+                            if (place.banner.isNotEmpty()) {
+                                Picasso.get().load(place.banner)
+                                    .placeholder(R.drawable.placeholder)
+                                    .into(location_image)
+                            }
                         } catch (e: IOException) {
                             e.printStackTrace()
                         }
@@ -74,6 +78,7 @@ class LocationDetailsActivity : AppCompatActivity() {
 
 
             }
+
 
             override fun onFailure(call: Call, e: IOException) {
                 println("Failed to execute HTTP request")

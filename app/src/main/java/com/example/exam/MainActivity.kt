@@ -4,6 +4,7 @@ import android.app.SearchManager
 import android.content.Context
 import android.os.Bundle
 import android.view.Menu
+import android.view.View
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +13,7 @@ import com.example.exam.adapters.MainAdapter
 import com.example.exam.gson.ListFeed
 import com.example.exam.utils.Utils
 import com.google.gson.GsonBuilder
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.*
 import java.io.IOException
@@ -27,9 +29,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         recyclerView_main.layoutManager = LinearLayoutManager(this)
 
-
         if (Utils.isNetworkAvailable(this)) {
-            fetchRawJson()
+            fetchFeed()
         } else {
             Toast.makeText(this, getString(R.string.no_connection_message), Toast.LENGTH_LONG)
                 .show()
@@ -37,14 +38,18 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun fetchRawJson() {
+    private fun fetchFeed() {
 
         val url = "https://www.noforeignland.com/home/api/v1/places/"
         println("Fetching JSON")
         val request = Request.Builder().url(url).build()
         val client = OkHttpClient()
+
+
+
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
+
                 val body = response.body?.string()
                 val gson = GsonBuilder().create()
                 val listFeed = gson.fromJson(body, ListFeed::class.java)
@@ -72,22 +77,13 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+
 }
 
 
 
 
 
-//    override fun onNewsSuccess(newsList: ArrayList<Location>?) {
-//
-//        if (isFinishing) {
-//            return
-//        }
-//        updateNews(LocationList!!)
-//    }
-//
-//    override fun onNewsError() {
-//        Toast.makeText(this, getString(R.string.news_fetch_error), Toast.LENGTH_LONG).show()
-//    }
+
 
 

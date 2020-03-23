@@ -1,36 +1,32 @@
 package com.example.exam.gson
 
-class Geometry(
-    var type: String? = null,
-    var coordinates: List<Double>? = null
+data class Geometry(
+    var type: String?,
+    var coordinates: List<Double>?
 )
 
-class ListFeed(
+data class ListFeed(
     val features: List<Location>
 )
 
-class Location(
-    var type: String? = null,
-    var properties: Properties? = null,
-    var geometry: Geometry? = null
+data class Location(
+    var type: String?,
+    var properties: Properties?,
+    var geometry: Geometry?
 )
 
-class LocationDetails(
+data class LocationDetails(
     val place: PlaceDetails
 )
 
-class PlaceDetails(
+data class PlaceDetails(
     val comments: String,
     val banner: String
 )
 
-class Properties(
-    var name: String? = null,
-    var icon: String? = null,
-    var id: Long? = null
+data class Properties(
+    var name: String?,
+    var icon: String?,
+    var id: Long?
 )
 
-class Type(
-    var type: String? = null,
-    var features: List<Location>? = null
-)

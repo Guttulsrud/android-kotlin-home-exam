@@ -1,9 +1,12 @@
 package com.example.exam
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.text.method.ScrollingMovementMethod
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.text.HtmlCompat
 import com.example.exam.adapters.CustomViewHolder
 import com.example.exam.gson.LocationDetails
@@ -15,23 +18,35 @@ import java.io.IOException
 
 
 class LocationDetailsActivity : AppCompatActivity() {
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_location_details)
 
 
-//        recyclerView_main.layoutManager = LinearLayoutManager(this)
-//
-//        recyclerView_main.adapter = LocationDetailsAdapter()
-
         val navBarTitle = intent.getStringExtra(CustomViewHolder.location_title_key)
+        val latitude = intent.getDoubleExtra(CustomViewHolder.latitude, 0.0)
+        val longitude = intent.getDoubleExtra(CustomViewHolder.longitude, 0.0)
+
         supportActionBar?.title = navBarTitle
         location_name.text = navBarTitle
-        location_description.movementMethod = ScrollingMovementMethod()
         location_description.resetLoader()
 
-
         fetchJson()
+
+
+
+
+        openMaps.setOnClickListener {
+            val intent = Intent(openMaps.context, MapsActivity::class.java)
+
+            intent.putExtra("latitude", latitude)
+            intent.putExtra("longitude", longitude)
+            openMaps.context.startActivity(intent)
+
+        }
 
     }
 
@@ -42,32 +57,37 @@ class LocationDetailsActivity : AppCompatActivity() {
 
         val client = OkHttpClient()
 
-        val request = Request.Builder().url(locationDetailsUrl).build()
+        val request = Request.Builder()
+            .url(locationDetailsUrl)
+            .build()
 
 
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
 
-                //TODO: Fix so loading waits until ready before rendering complete text
-
                 if (response.isSuccessful) {
                     val body = response.body?.string()
-                    val gson = GsonBuilder().create()
-                    val place = gson.fromJson(body, LocationDetails::class.java).place
-
-
+                    val place = GsonBuilder().create().fromJson(body, LocationDetails::class.java).place
+                    val imageUrl = place.banner
                     runOnUiThread {
                         try {
-                            if (place.comments != "<p></p>") {
-                                location_description.text = HtmlCompat.fromHtml(place.comments, HtmlCompat.FROM_HTML_MODE_LEGACY)
-                            } else {
-                                location_description.text = "No comments!"
+                            println(place.comments)
+                            when (place.comments) {
+                                "<p></p>", "<p><br></p>" -> location_description.text =
+                                    "No comments!"
+                                else -> location_description.text = HtmlCompat.fromHtml(
+                                    place.comments,
+                                    HtmlCompat.FROM_HTML_MODE_LEGACY
+                                )
                             }
 
-                            if (place.banner.isNotEmpty()) {
-                                Picasso.get().load(place.banner)
+                            if (imageUrl.isNotEmpty()) {
+                                Picasso.get()
+                                    .load(imageUrl)
                                     .placeholder(R.drawable.placeholder)
                                     .into(location_image)
+                            } else {
+                                location_image.visibility = View.GONE
                             }
                         } catch (e: IOException) {
                             e.printStackTrace()
@@ -87,36 +107,5 @@ class LocationDetailsActivity : AppCompatActivity() {
 
         })
     }
-
-//
-//    private class LocationDetailsAdapter : RecyclerView.Adapter<DetailsViewHolder>() {
-//
-//        override fun onCreateViewHolder(
-//            parent: ViewGroup, viewType: Int
-//        ): DetailsViewHolder {
-//
-//
-//            val layoutInflater = LayoutInflater.from(parent.context)
-//            val customView = layoutInflater.inflate(R.layout.details_row, parent, false)
-//            return DetailsViewHolder(customView)
-//        }
-//
-//        override fun getItemCount(): Int {
-//            return 5
-//        }
-//
-//        override fun onBindViewHolder(holder: DetailsViewHolder, position: Int) {
-//
-//
-//        }
-//
-//
-//    }
-//
-//
-//    private class DetailsViewHolder(val customView: View) :
-//        RecyclerView.ViewHolder(customView) {
-//
-//    }
 }
 

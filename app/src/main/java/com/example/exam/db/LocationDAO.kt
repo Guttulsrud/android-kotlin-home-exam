@@ -27,7 +27,6 @@ object LocationTable : BaseColumns {
 
 
 class LocationDAO(context: Context) : Database(context) {
-    var kek: Int = 0
 
     fun insert(type: String, properties: String, geometry: String): Long? {
 
@@ -40,11 +39,6 @@ class LocationDAO(context: Context) : Database(context) {
         return writableDatabase.use {
             it.insert(TABLE_NAME, null, values)
         }
-    }
-
-    fun bulkInsert(list: MutableList<Location>) {
-
-
     }
 
     fun update(location: LocationDTO): Int? {
@@ -68,6 +62,7 @@ class LocationDAO(context: Context) : Database(context) {
         val locationList = mutableListOf<Location>()
         with(cursor) {
             while (moveToNext()) {
+                val id = getInt(getColumnIndexOrThrow(COLUMN_ID))
                 val type = getString(getColumnIndexOrThrow(COLUMN_TYPE))
                 val properties = getString(getColumnIndexOrThrow(COLUMN_PROPERTIES))
                 val geometry = getString(getColumnIndexOrThrow(COLUMN_GEOMETRY))
@@ -78,28 +73,29 @@ class LocationDAO(context: Context) : Database(context) {
                 val prop = gson.fromJson(properties, Properties::class.java)
                 val geo = gson.fromJson(geometry, Geometry::class.java)
 
-                locationList.add(Location(type, prop, geo))
+                locationList.add(Location(id, type, prop, geo))
             }
         }
         return locationList
     }
 
 
-    fun getpaged(limit: Int, from: Int): MutableList<Location> {
+    fun getLocationsLimited(from: Int? = 0, limit: Int? = 10): MutableList<Location> {
         val cursor: Cursor = readableDatabase.query(
             TABLE_NAME,
             arrayOf(COLUMN_ID, COLUMN_TYPE, COLUMN_PROPERTIES, COLUMN_GEOMETRY),
-            "_id BETWEEN ? AND ?",
-            arrayOf(limit.toString(), from.toString()),
+            "_id > ?",
+            arrayOf(from.toString()),
             null,
             null,
-            null
+            null, limit.toString()
         )
 
         val locationList = mutableListOf<Location>()
 
         with(cursor) {
             while (moveToNext()) {
+                val id = getInt(getColumnIndexOrThrow(COLUMN_ID))
                 val type = getString(getColumnIndexOrThrow(COLUMN_TYPE))
                 val properties = getString(getColumnIndexOrThrow(COLUMN_PROPERTIES))
                 val geometry = getString(getColumnIndexOrThrow(COLUMN_GEOMETRY))
@@ -110,7 +106,7 @@ class LocationDAO(context: Context) : Database(context) {
                 val prop = gson.fromJson(properties, Properties::class.java)
                 val geo = gson.fromJson(geometry, Geometry::class.java)
 
-                locationList.add(Location(type, prop, geo))
+                locationList.add(Location(id, type, prop, geo))
 
 
             }
@@ -125,10 +121,6 @@ class LocationDAO(context: Context) : Database(context) {
         val count = DatabaseUtils.queryNumEntries(db, TABLE_NAME)
         db.close()
         return count
-    }
-
-    fun delete(id: Long) {
-
     }
 
 

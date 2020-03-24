@@ -28,6 +28,7 @@ class MainAdapter(private val listFeed: MutableList<Location>) : RecyclerView.Ad
     }
 
     override fun onBindViewHolder(holder: CustomViewHolder, position: Int) {
+
         val location = listFeed[position]
         holder.view.textView_location_title?.text = location.properties?.name
 
@@ -50,7 +51,6 @@ class MainAdapter(private val listFeed: MutableList<Location>) : RecyclerView.Ad
 
 
     }
-
 
 }
 

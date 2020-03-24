@@ -1,41 +1,34 @@
 package com.example.exam
 
-import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuItem
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.exam.adapters.MainAdapter
 import com.example.exam.db.LocationDAO
 import com.example.exam.gson.ListFeed
 import com.example.exam.gson.Location
 import com.example.exam.utils.Utils
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import okhttp3.*
-import org.json.JSONObject
 import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
+
 
 class MainActivity : AppCompatActivity() {
 
     private var locationDAO: LocationDAO? = null
 
-
     var list: MutableList<Location> = ArrayList()
     var displayList: MutableList<Location> = ArrayList()
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -49,21 +42,52 @@ class MainActivity : AppCompatActivity() {
             if (Utils.isNetworkAvailable(this)) {
                 fetchFeed()
             } else {
-
+                println("no network :o")
             }
         } else {
 
-            displayList = locationDAO!!.getpaged(0, 3)
-
+            displayList = locationDAO!!.getLocationsLimited(0, 100)
             list.addAll(displayList)
 
             runOnUiThread {
                 recyclerView_main.adapter = MainAdapter(displayList)
             }
+
+
+
+
+
+            recyclerView_main.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(
+                    recyclerView: RecyclerView,
+                    newState: Int
+                ) {
+                    super.onScrollStateChanged(recyclerView, newState)
+                    if (!recyclerView.canScrollVertically(1)) {
+
+                        runOnUiThread {
+                            val loadedItemCount: Int? = recyclerView_main.adapter?.itemCount
+
+                            val nextItemsToLoad = locationDAO!!.getLocationsLimited(loadedItemCount,100 )
+
+                            displayList.addAll(nextItemsToLoad)
+                            list.addAll(nextItemsToLoad)
+
+                            recyclerView_main.adapter = MainAdapter(displayList)
+
+                            if (loadedItemCount != null) {
+                                (recyclerView_main.adapter as MainAdapter).notifyItemRangeChanged(loadedItemCount, 2)
+                            }
+                        }
+
+                    }
+                }
+            })
+
         }
 
-
     }
+
 
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -110,29 +134,32 @@ class MainActivity : AppCompatActivity() {
 
     private fun parseAndCacheLocations(locations: MutableList<Location>) {
 
+
+        //TODO: do in background
         val gson = GsonBuilder().create()
 
-
-        var counter: Int = 0
+        var counter = 0
         for (location in locations) {
+            counter++
+
             location.type?.let {
                 locationDAO?.insert(
                     it, gson.toJson(location.properties), gson.toJson(location.geometry)
                 )
             }
-            counter++
-
-            when (counter) {
-                1000 -> println("1000 added")
-                2000 -> println("2000 added")
-                3000 -> println("3000 added")
-                4000 -> println("4000 added")
-                5000 -> println("5000 added")
-                6000 -> println("6000 added")
-                7000 -> println("7000 added")
-                8000 -> println("8000 added")
-                9000 -> println("9000 added")
-                10000 -> println("10000 added")
+            when(counter) {
+                1000 -> println(1000)
+                2000 -> println(2000)
+                3000 -> println(3000)
+                4000 -> println(4000)
+                5000 -> println(5000)
+                6000 -> println(6000)
+                7000 -> println(7000)
+                8000 -> println(8000)
+                9000 -> println(9000)
+                10000 -> println(10000)
+                11000 -> println(11000)
+                11700 -> println(11700)
             }
         }
         println("caching done!")

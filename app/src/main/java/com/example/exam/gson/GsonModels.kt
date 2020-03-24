@@ -10,6 +10,7 @@ data class ListFeed(
 )
 
 data class Location(
+    var id: Int,
     var type: String?,
     var properties: Properties?,
     var geometry: Geometry?

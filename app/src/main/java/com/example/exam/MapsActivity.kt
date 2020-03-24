@@ -10,6 +10,9 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -42,11 +45,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val latitude = intent.getDoubleExtra("latitude", 0.0)
         val longitude = intent.getDoubleExtra("longitude", 0.0)
+        val locationName = intent.getStringExtra("title")
 
 
-        // Add a marker in Sydney and move the camera
+
         val marker = LatLng(latitude,longitude)
-        mMap.addMarker(MarkerOptions().position(marker).title("Marker"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(marker))
+        mMap.addMarker(MarkerOptions().position(marker).title(locationName))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker, 14f))
     }
 }

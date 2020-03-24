@@ -3,6 +3,11 @@
     <string name="no_connection_message">Check your internet connection</string>
     <string name="no_comments">No comments yet!</string>
     <string name="image">image</string>
+    <string name="action_search">Search</string>
     <string name="title_activity_maps">Map</string>
     <string name="location_title">Location title</string>
+    <string name="title_activity_search">Search</string>
+    <string name="searchable_hint">Enter query</string>
+    <string name="search">Search</string>
 </resources>
+

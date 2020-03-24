@@ -1,5 +1,6 @@
 package com.example.exam.db
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -26,6 +27,7 @@ object LocationTable : BaseColumns {
 
 
 class LocationDAO(context: Context) : Database(context) {
+    var kek: Int = 0
 
     fun insert(type: String, properties: String, geometry: String): Long? {
 
@@ -38,6 +40,11 @@ class LocationDAO(context: Context) : Database(context) {
         return writableDatabase.use {
             it.insert(TABLE_NAME, null, values)
         }
+    }
+
+    fun bulkInsert(list: MutableList<Location>) {
+
+
     }
 
     fun update(location: LocationDTO): Int? {
@@ -55,7 +62,8 @@ class LocationDAO(context: Context) : Database(context) {
         }
     }
 
-    fun fetchAll(): List<Location> {
+    fun fetchAll(): MutableList<Location> {
+
         val cursor: Cursor = readableDatabase.query(TABLE_NAME, null, null, null, null, null, null)
         val locationList = mutableListOf<Location>()
         with(cursor) {
@@ -66,12 +74,48 @@ class LocationDAO(context: Context) : Database(context) {
 
                 val gson = GsonBuilder().create()
 
+                //return array of strings?.....
                 val prop = gson.fromJson(properties, Properties::class.java)
                 val geo = gson.fromJson(geometry, Geometry::class.java)
 
                 locationList.add(Location(type, prop, geo))
             }
         }
+        return locationList
+    }
+
+
+    fun getpaged(limit: Int, from: Int): MutableList<Location> {
+        val cursor: Cursor = readableDatabase.query(
+            TABLE_NAME,
+            arrayOf(COLUMN_ID, COLUMN_TYPE, COLUMN_PROPERTIES, COLUMN_GEOMETRY),
+            "_id BETWEEN ? AND ?",
+            arrayOf(limit.toString(), from.toString()),
+            null,
+            null,
+            null
+        )
+
+        val locationList = mutableListOf<Location>()
+
+        with(cursor) {
+            while (moveToNext()) {
+                val type = getString(getColumnIndexOrThrow(COLUMN_TYPE))
+                val properties = getString(getColumnIndexOrThrow(COLUMN_PROPERTIES))
+                val geometry = getString(getColumnIndexOrThrow(COLUMN_GEOMETRY))
+
+                val gson = GsonBuilder().create()
+
+                //return array of strings?.....
+                val prop = gson.fromJson(properties, Properties::class.java)
+                val geo = gson.fromJson(geometry, Geometry::class.java)
+
+                locationList.add(Location(type, prop, geo))
+
+
+            }
+        }
+
         return locationList
     }
 

@@ -29,6 +29,7 @@ class LocationDetailsActivity : AppCompatActivity() {
         val navBarTitle = intent.getStringExtra(CustomViewHolder.location_title_key)
         val latitude = intent.getDoubleExtra(CustomViewHolder.latitude, 0.0)
         val longitude = intent.getDoubleExtra(CustomViewHolder.longitude, 0.0)
+        val locationName = intent.getStringExtra(CustomViewHolder.location_title_key)
 
         supportActionBar?.title = navBarTitle
         location_name.text = navBarTitle
@@ -44,6 +45,7 @@ class LocationDetailsActivity : AppCompatActivity() {
 
             intent.putExtra("latitude", latitude)
             intent.putExtra("longitude", longitude)
+            intent.putExtra("title", locationName)
             openMaps.context.startActivity(intent)
 
         }
@@ -85,6 +87,7 @@ class LocationDetailsActivity : AppCompatActivity() {
                                 Picasso.get()
                                     .load(imageUrl)
                                     .placeholder(R.drawable.placeholder)
+                                    .fit()
                                     .into(location_image)
                             } else {
                                 location_image.visibility = View.GONE

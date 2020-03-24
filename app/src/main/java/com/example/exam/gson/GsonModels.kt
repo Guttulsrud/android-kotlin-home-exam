@@ -6,7 +6,7 @@ data class Geometry(
 )
 
 data class ListFeed(
-    val features: List<Location>
+    val features: MutableList<Location>
 )
 
 data class Location(
@@ -30,3 +30,4 @@ data class Properties(
     var id: Long?
 )
 
+data class Test(val value:String)

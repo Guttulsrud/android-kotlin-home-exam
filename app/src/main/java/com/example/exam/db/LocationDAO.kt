@@ -1,10 +1,10 @@
 package com.example.exam.db
 
-import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.DatabaseUtils
+import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
 import com.example.exam.db.LocationTable.COLUMN_GEOMETRY
 import com.example.exam.db.LocationTable.COLUMN_ID
@@ -25,36 +25,78 @@ object LocationTable : BaseColumns {
     const val COLUMN_GEOMETRY = "geometry"
 }
 
+var run: Boolean = false
 
 class LocationDAO(context: Context) : Database(context) {
 
-    fun insert(type: String, properties: String, geometry: String): Long? {
+    fun insertData(locations: MutableList<Location>) {
+        val gson = GsonBuilder().create()
+        val db = writableDatabase
 
-        val values = ContentValues().apply {
-            put(COLUMN_TYPE, type)
-            put(COLUMN_PROPERTIES, properties)
-            put(COLUMN_GEOMETRY, geometry)
+        var counter = 0
+
+        if (!run) {
+            try {
+
+                db.beginTransaction()
+                for (location in locations) {
+                    val contentValues = ContentValues()
+                    contentValues.put(COLUMN_TYPE, gson.toJson(location.type))
+                    contentValues.put(COLUMN_PROPERTIES, gson.toJson(location.properties))
+                    contentValues.put(COLUMN_GEOMETRY, gson.toJson(location.geometry))
+                    db.insert(TABLE_NAME, null, contentValues)
+                    counter++
+
+                    if (counter % 1000 == 0) {
+                        println("$counter rows inserted")
+                    }
+                }
+
+
+                db.setTransactionSuccessful()
+            } catch (e: Exception) {
+                println("kek no work")
+                println(e.message)
+
+            } finally {
+                db.endTransaction()
+                println("db.endTransaction()")
+                run = true
+            }
         }
 
-        return writableDatabase.use {
-            it.insert(TABLE_NAME, null, values)
-        }
     }
 
-    fun update(location: LocationDTO): Int? {
-        val values = ContentValues().apply {
-            put(COLUMN_TYPE, location.type)
-            put(COLUMN_PROPERTIES, location.type)
-            put(COLUMN_GEOMETRY, location.type)
-        }
 
-        val selection = "$COLUMN_ID = ?"
-        val selectionArgs = arrayOf(location.id.toString())
 
-        return writableDatabase.use {
-            it.update(TABLE_NAME, values, selection, selectionArgs)
-        }
-    }
+
+//    fun insert(type: String, properties: String, geometry: String): Long? {
+//
+//        val values = ContentValues().apply {
+//            put(COLUMN_TYPE, type)
+//            put(COLUMN_PROPERTIES, properties)
+//            put(COLUMN_GEOMETRY, geometry)
+//        }
+//
+//        return writableDatabase.use {
+//            it.insert(TABLE_NAME, null, values)
+//        }
+//    }
+
+//    fun update(location: LocationDTO): Int? {
+//        val values = ContentValues().apply {
+//            put(COLUMN_TYPE, location.type)
+//            put(COLUMN_PROPERTIES, location.type)
+//            put(COLUMN_GEOMETRY, location.type)
+//        }
+//
+//        val selection = "$COLUMN_ID = ?"
+//        val selectionArgs = arrayOf(location.id.toString())
+//
+//        return writableDatabase.use {
+//            it.update(TABLE_NAME, values, selection, selectionArgs)
+//        }
+//    }
 
     fun fetchAll(): MutableList<Location> {
 

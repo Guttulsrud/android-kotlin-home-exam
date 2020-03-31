@@ -3,8 +3,8 @@ package com.example.exam.db
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.example.exam.db.LocationTable.COLUMN_ID
 import com.example.exam.db.LocationTable.COLUMN_GEOMETRY
+import com.example.exam.db.LocationTable.COLUMN_ID
 import com.example.exam.db.LocationTable.COLUMN_PROPERTIES
 import com.example.exam.db.LocationTable.COLUMN_TYPE
 
@@ -21,8 +21,6 @@ open class Database(context: Context) : SQLiteOpenHelper(
     override fun onCreate(db: SQLiteDatabase?) {
         val queryCreateLocationsTable =
             "CREATE TABLE ${LocationTable.TABLE_NAME} ($COLUMN_ID INTEGER PRIMARY KEY, $COLUMN_TYPE TEXT, $COLUMN_PROPERTIES TEXT, $COLUMN_GEOMETRY TEXT )"
-
-
         db?.execSQL(queryCreateLocationsTable)
     }
 

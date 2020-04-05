@@ -6,6 +6,7 @@ import android.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.exam.adapters.MainAdapter
 import com.example.exam.db.LocationDAO
@@ -17,6 +18,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.*
 import java.io.IOException
@@ -46,19 +48,16 @@ class MainActivity : AppCompatActivity() {
         val count = locationDAO!!.getLocationCount()
         if (count < 1) {
             if (Utils.isNetworkAvailable(this)) {
-                fetchFeed()
+                //Fetch and insert data
+                fetchApiData()
+
+
+                //Display data here, and end loading?
+
             } else {
                 println("no network :o")
             }
         } else {
-
-
-            //Fetch all locations from DB on a sepereate IO coroutine
-            CoroutineScope(IO).launch {
-                allLocations = locationDAO!!.fetchAll()
-
-            }
-
 
             CoroutineScope(Main).launch {
                 displayList = locationDAO!!.getLocationsLimited(0, 10)
@@ -66,12 +65,51 @@ class MainActivity : AppCompatActivity() {
                 recyclerView_main.adapter = MainAdapter(displayList)
             }
 
+            //Fetch all locations from DB on a separate IO coroutine
+            CoroutineScope(IO).launch {
+                allLocations = locationDAO!!.fetchAll()
+            }
+
 
             setRecyclerScrollListener()
-
-
-
         }
+
+    }
+
+
+    private fun fetchApiData() {
+
+        val url = "https://www.noforeignland.com/home/api/v1/places/"
+        val request = Request.Builder().url(url).build()
+        val client = OkHttpClient()
+
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+
+                if (response.isSuccessful) {
+                    displayList = parseJsonToFeed(response.body?.string())
+                    list.addAll(displayList)
+
+
+
+                    runOnUiThread {
+                        locationDAO!!.insertData(list)
+                    }
+
+//
+//                    runOnUiThread {
+//                        recyclerView_main.adapter = MainAdapter(displayList)
+//                    }
+
+
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                println("Failed to execute HTTP request")
+            }
+        })
 
     }
 
@@ -163,41 +201,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun fetchFeed() {
 
-        val url = "https://www.noforeignland.com/home/api/v1/places/"
-        val request = Request.Builder().url(url).build()
-        val client = OkHttpClient()
-
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onResponse(call: Call, response: Response) {
-
-                if (response.isSuccessful) {
-                    displayList = parseJsonToFeed(response.body?.string())
-                    list.addAll(displayList)
-
-
-
-                    runOnUiThread {
-                        locationDAO!!.insertData(list)
-                    }
-
-
-                    runOnUiThread {
-                        recyclerView_main.adapter = MainAdapter(displayList)
-                    }
-
-
-                }
-            }
-
-            override fun onFailure(call: Call, e: IOException) {
-                println("Failed to execute HTTP request")
-            }
-        })
-
-    }
 
 
 //    private suspend fun setTextOnMainThread(input: String) {

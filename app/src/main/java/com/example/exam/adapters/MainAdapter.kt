@@ -1,5 +1,4 @@
 package com.example.exam.adapters
-
 import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
@@ -23,8 +22,8 @@ class MainAdapter(private val listFeed: MutableList<Location>) : RecyclerView.Ad
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CustomViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
-        val cellForRow = layoutInflater.inflate(R.layout.location_row, parent, false)
-        return CustomViewHolder(cellForRow)
+        val cell = layoutInflater.inflate(R.layout.location_row, parent, false)
+        return CustomViewHolder(cell)
     }
 
     override fun onBindViewHolder(holder: CustomViewHolder, position: Int) {

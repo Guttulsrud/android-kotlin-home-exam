@@ -3,15 +3,13 @@ package com.example.exam
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
-import android.os.Parcelable
+import android.view.View
 import android.widget.Toast
 import com.example.exam.api.ApiServiceInterface
 import com.example.exam.db.LocationDAO
 import com.example.exam.gson.Location
 import com.example.exam.gson.Locations
 import com.example.exam.utils.Utils
-import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import retrofit2.Call
@@ -19,7 +17,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.Serializable
 
 class SplashScreenActivity : AppCompatActivity() {
 
@@ -33,12 +30,6 @@ class SplashScreenActivity : AppCompatActivity() {
 
         locationDAO = LocationDAO(this)
         val count = locationDAO!!.getLocationCount()
-
-
-
-        println("HELLLLLOOO")
-        print("HELLLLLOOO")
-        println("HELLLLLOOO")
 
         if (Utils.isNetworkAvailable(this)) {
             if (count < 1) {
@@ -71,7 +62,7 @@ class SplashScreenActivity : AppCompatActivity() {
 
 
         val adapterData: MutableList<Location> = ArrayList()
-        val call = api.getAllLocationsFromNfl()
+        val call = api.getLocationsAll()
         call.enqueue(object : Callback<Locations> {
 
 
@@ -114,4 +105,13 @@ class SplashScreenActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+
+    //Setting app to fullscreen
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN)
+        }
+    }
+
 }

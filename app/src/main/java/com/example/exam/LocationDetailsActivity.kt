@@ -23,10 +23,12 @@ class LocationDetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_location_details)
         locationDAO = LocationDAO(this)
+
+        fetchAndParseApiResponse(intent.getLongExtra(CustomViewHolder.location_id_key, -1))
         location_name.text = intent.getStringExtra(CustomViewHolder.location_title_key)
         location_description.resetLoader()
 
-        fetchAndParseApiResponse(intent.getLongExtra(CustomViewHolder.location_id_key, -1))
+
         setMapsButtonListener()
     }
 
@@ -95,6 +97,14 @@ class LocationDetailsActivity : AppCompatActivity() {
                 TODO("Not yet implemented")
             }
         })
+    }
+
+    //Setting app to fullscreen
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN)
+        }
     }
 }
 

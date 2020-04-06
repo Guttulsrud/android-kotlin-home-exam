@@ -1,14 +1,10 @@
 package com.example.exam.gson
 
-
-
-
 data class Locations(
     val features: List<Location>
     ) {
 
     data class Location(
-        var id: Long?,
         var properties: Properties?,
         var geometry: Geometry?,
         val name: String?,

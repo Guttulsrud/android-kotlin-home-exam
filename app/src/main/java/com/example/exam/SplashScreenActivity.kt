@@ -20,7 +20,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class SplashScreenActivity : AppCompatActivity() {
 
-    private var locationDAO: LocationDAO? = null
+    private lateinit var locationDAO: LocationDAO
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,13 +29,14 @@ class SplashScreenActivity : AppCompatActivity() {
 
 
         locationDAO = LocationDAO(this)
-        val count = locationDAO!!.getLocationCount()
 
         if (Utils.isNetworkAvailable(this)) {
-            if (count < 1) {
-                fetchAndParseApiResponse()
-            } else {
+            if (locationDAO.checkIfDataHasBeenCached()) {
                 startMainActivity()
+
+            } else {
+                fetchAndParseApiResponse()
+
             }
         } else {
             Toast.makeText(
@@ -61,10 +62,9 @@ class SplashScreenActivity : AppCompatActivity() {
             .create(ApiServiceInterface::class.java)
 
 
-        val adapterData: MutableList<Location> = ArrayList()
+        val locationsToAdd: MutableList<Location> = ArrayList()
         val call = api.getLocationsAll()
         call.enqueue(object : Callback<Locations> {
-
 
 
             override fun onResponse(call: Call<Locations>, response: Response<Locations>) {
@@ -72,24 +72,22 @@ class SplashScreenActivity : AppCompatActivity() {
                     val locations: Locations? = response.body()
                     locations!!.features.forEach {
 
-                        val name: String? = it.properties?.name
-                        val apiId: Long? = it.properties?.id
-                        val icon: String? = it.properties?.icon
-                        val testId: Long? = it.properties?.id
-                        val longitude: Double? = it.geometry?.coordinates?.get(0)
-                        val latitude: Double? = it.geometry?.coordinates?.get(1)
-
-
-                        val location = Location(testId, name, icon, apiId, longitude, latitude)
-                        adapterData.add(location)
+                        locationsToAdd.add(
+                            Location(
+                                it.properties?.id,
+                                it.properties?.name,
+                                it.properties?.icon,
+                                it.properties?.id,
+                                it.geometry?.coordinates?.get(0),
+                                it.geometry?.coordinates?.get(1)
+                            )
+                        )
                     }
 
                     runBlocking {
-                        locationDAO!!.insertData(adapterData)
+                        locationDAO.insertLocationsAll(locationsToAdd)
                     }
-
                     startMainActivity()
-
                 }
             }
 
@@ -113,5 +111,6 @@ class SplashScreenActivity : AppCompatActivity() {
             window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN)
         }
     }
+
 
 }

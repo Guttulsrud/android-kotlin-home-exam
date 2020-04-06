@@ -63,7 +63,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/location_name"
             app:layout_constraintTop_toBottomOf="@+id/location_image"
-            app:srcCompat="@drawable/gps_button" />
+            app:srcCompat="@drawable/logo_button"
+            android:clickable="true"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

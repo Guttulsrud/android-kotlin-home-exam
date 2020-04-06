@@ -41,8 +41,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/textView_location_title"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/gps_button"
-            tools:srcCompat="@drawable/gps_button" />
+            app:srcCompat="@drawable/logo_button"
+            tools:srcCompat="@drawable/logo_button" />
 
         <ImageView
             android:id="@+id/icon"

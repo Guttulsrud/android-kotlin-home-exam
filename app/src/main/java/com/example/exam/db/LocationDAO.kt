@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.DatabaseUtils
+import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
 import com.example.exam.db.LocationTable.COLUMN_API_ID
 import com.example.exam.db.LocationTable.COLUMN_ICON
@@ -29,7 +30,9 @@ var run: Boolean = false
 
 class LocationDAO(context: Context) : Database(context) {
 
-    fun insertData(locations: MutableList<Location>) {
+
+
+    fun insertLocationsAll(locations: MutableList<Location>) {
         val db = writableDatabase
 
         if (!run) {
@@ -47,7 +50,6 @@ class LocationDAO(context: Context) : Database(context) {
 
                 db.setTransactionSuccessful()
             } catch (e: Exception) {
-                println("kek no work")
                 println(e.message)
 
                 //todo: proper exception catch
@@ -58,7 +60,6 @@ class LocationDAO(context: Context) : Database(context) {
             }
         }
     }
-
 
 
 //    fun update(location: LocationDTO): Int? {
@@ -96,12 +97,19 @@ class LocationDAO(context: Context) : Database(context) {
     }
 
 
-    fun getLocationByName(query:String): MutableList<Location> {
+    fun getLocationByName(query: String): MutableList<Location> {
         val locationList = mutableListOf<Location>()
 
         val cursor: Cursor = readableDatabase.query(
             TABLE_NAME,
-            arrayOf(COLUMN_ID, COLUMN_NAME, COLUMN_ICON, COLUMN_API_ID, COLUMN_LATITUDE, COLUMN_LONGITUDE),
+            arrayOf(
+                COLUMN_ID,
+                COLUMN_NAME,
+                COLUMN_ICON,
+                COLUMN_API_ID,
+                COLUMN_LATITUDE,
+                COLUMN_LONGITUDE
+            ),
             "name LIKE '%$query%'",
             null,
             null,
@@ -126,10 +134,8 @@ class LocationDAO(context: Context) : Database(context) {
     }
 
 
-    fun getLocationCount(): Long {
+    fun checkIfDataHasBeenCached(): Boolean {
         val db = readableDatabase
-        val count = DatabaseUtils.queryNumEntries(db, TABLE_NAME)
-        db.close()
-        return count
+        return DatabaseUtils.queryNumEntries(db, TABLE_NAME) > 1
     }
 }

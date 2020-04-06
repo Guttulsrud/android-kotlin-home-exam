@@ -9,11 +9,26 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
+        android:launchMode="singleTop"
         android:label="@string/app_name"
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".MainActivity"
+            android:launchMode="singleTop">
+        ></activity>
+
+        <activity
+            android:name=".SplashScreenActivity" android:theme="@style/SplashTheme"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -25,18 +40,6 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
-        </activity>
-
-
-        <activity
-            android:name=".MainActivity"
-            android:theme="@style/AppTheme.Launcher"
-            android:launchMode="singleTop">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".LocationDetailsActivity"

@@ -30,18 +30,18 @@ class MainAdapter(private val listFeed: MutableList<Location>) : RecyclerView.Ad
     override fun onBindViewHolder(holder: CustomViewHolder, position: Int) {
 
         val location = listFeed[position]
-        holder.view.textView_location_title?.text = location.properties?.name
+        holder.view.textView_location_title?.text = location.name
 
         holder.view.mapsButton.setOnClickListener {
             val intent = Intent(holder.view.mapsButton.context, MapsActivity::class.java)
 
-            intent.putExtra("longitude", location.geometry?.coordinates?.get(0))
-            intent.putExtra("latitude", location.geometry?.coordinates?.get(1))
-            intent.putExtra("title", location.properties?.name)
+            intent.putExtra("longitude", location.longitude)
+            intent.putExtra("latitude", location.latitude)
+            intent.putExtra("title", location.name)
             holder.view.mapsButton.context.startActivity(intent)
         }
 
-        val omg = location.properties?.icon?.toLowerCase(Locale.ROOT)
+        val omg = location.icon?.toLowerCase(Locale.ROOT)
         val context: Context = holder.view.context
         val iconDrawableId = context.resources.getIdentifier(omg, "drawable", context.packageName)
         val iconDrawable = ContextCompat.getDrawable(context, iconDrawableId);
@@ -60,7 +60,7 @@ class CustomViewHolder(val view: View, var location: Location? = null) :
 
     companion object {
         const val location_title_key = "title"
-        const val location_id_key = "id"
+        const val location_id_key = "nfl_id"
         const val latitude = "latitude"
         const val longitude = "longitude"
     }
@@ -68,11 +68,11 @@ class CustomViewHolder(val view: View, var location: Location? = null) :
     init {
         view.setOnClickListener {
             val intent = Intent(view.context, LocationDetailsActivity::class.java)
-            intent.putExtra(location_title_key, location?.properties?.name)
-            intent.putExtra(location_id_key, location?.properties?.id)
+            intent.putExtra(location_title_key, location?.name)
+            intent.putExtra(location_id_key, location?.apiId)
 
-            intent.putExtra(longitude, location?.geometry?.coordinates?.get(0))
-            intent.putExtra(latitude, location?.geometry?.coordinates?.get(1))
+            intent.putExtra(longitude, location?.longitude)
+            intent.putExtra(latitude, location?.latitude)
             view.context.startActivity(intent)
         }
     }

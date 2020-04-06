@@ -1,254 +1,85 @@
 package com.example.exam
 
 import android.os.Bundle
-import android.view.Menu
 import android.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING
-import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.exam.adapters.MainAdapter
 import com.example.exam.db.LocationDAO
-import com.example.exam.gson.ListFeed
 import com.example.exam.gson.Location
-import com.example.exam.utils.Utils
-import com.google.gson.GsonBuilder
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.*
-import java.io.IOException
+import kotlinx.coroutines.runBlocking
 import java.util.*
 import kotlin.collections.ArrayList
 
 
 class MainActivity : AppCompatActivity() {
 
-    private var locationDAO: LocationDAO? = null
+    var locationDAO: LocationDAO? = null
 
 
-    var list: MutableList<Location> = ArrayList()
-    var displayList: MutableList<Location> = ArrayList()
-    private var allLocations: MutableList<Location> = ArrayList()
+    var allLocations: MutableList<Location> = ArrayList()
+    var locationsInRecyclerView: MutableList<Location> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         recyclerView_main.layoutManager = LinearLayoutManager(this)
 
         locationDAO = LocationDAO(this)
 
 
-        val count = locationDAO!!.getLocationCount()
-        if (count < 1) {
-            if (Utils.isNetworkAvailable(this)) {
-                //Fetch and insert data
-                fetchApiData()
+        locationsInRecyclerView = locationDAO!!.getLocationsAll()
+        recyclerView_main.adapter = MainAdapter(locationsInRecyclerView)
 
-
-                //Display data here, and end loading?
-
-            } else {
-                println("no network :o")
-            }
-        } else {
-
-            CoroutineScope(Main).launch {
-                displayList = locationDAO!!.getLocationsLimited(0, 10)
-                list.addAll(displayList)
-                recyclerView_main.adapter = MainAdapter(displayList)
-            }
-
-            //Fetch all locations from DB on a separate IO coroutine
-            CoroutineScope(IO).launch {
-                allLocations = locationDAO!!.fetchAll()
-            }
-
-
-            setRecyclerScrollListener()
-        }
 
     }
 
 
-    private fun fetchApiData() {
-
-        val url = "https://www.noforeignland.com/home/api/v1/places/"
-        val request = Request.Builder().url(url).build()
-        val client = OkHttpClient()
 
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onResponse(call: Call, response: Response) {
-
-                if (response.isSuccessful) {
-                    displayList = parseJsonToFeed(response.body?.string())
-                    list.addAll(displayList)
-
-
-
-                    runOnUiThread {
-                        locationDAO!!.insertData(list)
-                    }
-
-//
-//                    runOnUiThread {
-//                        recyclerView_main.adapter = MainAdapter(displayList)
-//                    }
-
-
-                }
-            }
-
-            override fun onFailure(call: Call, e: IOException) {
-                println("Failed to execute HTTP request")
-            }
-        })
-
-    }
-
-
-    private fun setRecyclerScrollListener() {
-        recyclerView_main.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(
-                recyclerView: RecyclerView,
-                newState: Int
-            ) {
-                super.onScrollStateChanged(recyclerView, newState)
-                if (!recyclerView.canScrollVertically(1)) {
-
-                    runOnUiThread {
-                        val loadedItemCount: Int? = recyclerView_main.adapter?.itemCount
-
-
-                        //TODO: Scroll down on insert
-                        val nextItemsToLoad =
-                            locationDAO!!.getLocationsLimited(loadedItemCount, 10)
-
-                        displayList.addAll(nextItemsToLoad)
-                        list.addAll(nextItemsToLoad)
-
-                        recyclerView_main.adapter = MainAdapter(displayList)
-
-
-
-                        if (loadedItemCount != null) {
-                            recyclerView_main.adapter?.itemCount?.let {
-                                (recyclerView_main.adapter as MainAdapter).notifyItemRangeChanged(
-                                    0,
-                                    it
-                                )
-                            }
-                        }
-                    }
-
-                }
-            }
-        })
-    }
-
-
-    //TODO: Search must fetch from db
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu, menu)
-        val searchItem = menu?.findItem(R.id.menu_search)
-        if (searchItem != null) {
-            val searchView = searchItem.actionView as SearchView
-
-            searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        val locationSearchView = search_view
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            locationSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?): Boolean {
                     return true
                 }
 
-                override fun onQueryTextChange(newText: String?): Boolean {
-                    if (newText!!.isNotEmpty()) {
-                        displayList.clear()
-                        val search = newText.toLowerCase(Locale.ROOT)
+                override fun onQueryTextChange(searchText: String?): Boolean {
+                    println("reeherehrhreerh")
 
-                        //val allLocations = locationDAO!!.fetchAll()
+                    if (searchText!!.isNotEmpty()) {
+                        locationsInRecyclerView.clear()
+                        val keyword = searchText.toLowerCase(Locale.ROOT)
 
-                        allLocations.forEach {
-                            if (it.properties?.name?.toLowerCase(Locale.ROOT)?.contains(search)!!) {
-                                displayList.add(it)
-                            }
+
+                        if (keyword.isNotEmpty()) {
+                            val locations:MutableList<Location> = locationDAO!!.getLocationByName(keyword)
+                            locationsInRecyclerView.addAll(locations)
+                            recyclerView_main.adapter?.notifyDataSetChanged()
                         }
 
-                        recyclerView_main.adapter?.notifyDataSetChanged()
+                        println("hello am not empty")
+
                     } else {
-                        displayList.clear()
-                        displayList.addAll(list)
+                        println("hello empty")
+
+                        locationsInRecyclerView.clear()
+                        locationsInRecyclerView.addAll(allLocations)
                         recyclerView_main.adapter?.notifyDataSetChanged()
 
                     }
-
                     return true
                 }
-
             })
         }
-        return true
     }
-
-
-    private fun parseJsonToFeed(json: String?): MutableList<Location> {
-        return GsonBuilder().create().fromJson(json, ListFeed::class.java).features
-    }
-
-
-
-
-
-//    private suspend fun setTextOnMainThread(input: String) {
-//        Thread.sleep(7000)
-//        withContext(Main) {
-//            button.text = input
-//        }
-//    }
-
-
-//    private suspend fun getApiJson() {
-//
-//        val test = CoroutineScope(IO).launch {
-//
-//            setTextOnMainThread("hello i am response from API!!!")
-//
-//        }
-//
-//        test.invokeOnCompletion {
-//
-//        }
-//    }
-
-//    private fun fetchJson():String {
-//
-//
-//        CoroutineScope(IO).launch {
-//            val result1:Deferred<String> = async {
-//
-//            }
-//            val result2:Deferred<String> = async {
-//
-//            }
-//        }
-//    }
-
-//    private suspend fun getResultFromApi():String {
-//        val url = "https://www.noforeignland.com/home/api/v1/places/"
-//        val request = Request.Builder().url(url).build()
-//        val client = OkHttpClient()
-//
-//
-//
-//
-//    }
-
-
 }
 
 

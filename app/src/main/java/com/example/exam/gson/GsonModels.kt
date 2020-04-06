@@ -1,19 +1,31 @@
 package com.example.exam.gson
 
-data class Geometry(
-    var type: String?,
-    var coordinates: List<Double>?
-)
 
-data class ListFeed(
-    val features: MutableList<Location>
-)
+
+
+data class Locations(
+    val features: List<Location>
+    ) {
+
+    data class Location(
+        var id: Long?,
+        var properties: Properties?,
+        var geometry: Geometry?,
+        val name: String?,
+        val icon: String?,
+        val apiId: Long?,
+        val longitude: Double?,
+        val latitude: Double?
+    )
+}
 
 data class Location(
-    var id: Int,
-    var type: String?,
-    var properties: Properties?,
-    var geometry: Geometry?
+    var id: Long?,
+    val name: String?,
+    val icon: String?,
+    val apiId: Long?,
+    val longitude: Double?,
+    val latitude: Double?
 )
 
 data class LocationDetails(
@@ -31,4 +43,7 @@ data class Properties(
     var id: Long?
 )
 
-data class Test(val value:String)
+data class Geometry(
+    var type: String?,
+    var coordinates: List<Double>?
+)

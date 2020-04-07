@@ -1,4 +1,5 @@
 package com.example.exam.adapters
+
 import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
@@ -14,7 +15,8 @@ import kotlinx.android.synthetic.main.location_row.view.*
 import java.util.*
 
 
-class MainAdapter(private val listFeed: MutableList<Location>) : RecyclerView.Adapter<CustomViewHolder>() {
+class MainAdapter(private val listFeed: MutableList<Location>) :
+    RecyclerView.Adapter<CustomViewHolder>() {
 
     override fun getItemCount(): Int {
         return listFeed.count()
@@ -27,7 +29,7 @@ class MainAdapter(private val listFeed: MutableList<Location>) : RecyclerView.Ad
     }
 
     override fun onBindViewHolder(holder: CustomViewHolder, position: Int) {
-
+        val context: Context = holder.view.context
         val location = listFeed[position]
         holder.view.textView_location_title?.text = location.name
 
@@ -40,12 +42,16 @@ class MainAdapter(private val listFeed: MutableList<Location>) : RecyclerView.Ad
             holder.view.mapsButton.context.startActivity(intent)
         }
 
-        val omg = location.icon?.toLowerCase(Locale.ROOT)
-        val context: Context = holder.view.context
-        val iconDrawableId = context.resources.getIdentifier(omg, "drawable", context.packageName)
-        val iconDrawable = ContextCompat.getDrawable(context, iconDrawableId);
-        holder.view.icon.setImageDrawable(iconDrawable);
-
+        holder.view.icon.setImageDrawable(
+            ContextCompat.getDrawable(
+                context,
+                context.resources.getIdentifier(
+                    location.icon?.toLowerCase(Locale.ROOT),
+                    "drawable",
+                    context.packageName
+                )
+            )
+        )
         holder.location = location
 
 
@@ -59,7 +65,7 @@ class CustomViewHolder(val view: View, var location: Location? = null) :
 
     companion object {
         const val location_title_key = "title"
-        const val location_id_key = "nfl_id"
+        const val location_id_key = "_id"
         const val latitude = "latitude"
         const val longitude = "longitude"
     }
@@ -68,8 +74,7 @@ class CustomViewHolder(val view: View, var location: Location? = null) :
         view.setOnClickListener {
             val intent = Intent(view.context, LocationDetailsActivity::class.java)
             intent.putExtra(location_title_key, location?.name)
-            intent.putExtra(location_id_key, location?.apiId)
-
+            intent.putExtra(location_id_key, location?.id)
             intent.putExtra(longitude, location?.longitude)
             intent.putExtra(latitude, location?.latitude)
             view.context.startActivity(intent)

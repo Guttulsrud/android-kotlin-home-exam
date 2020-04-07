@@ -24,7 +24,8 @@ class LocationDetailsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_location_details)
         locationDAO = LocationDAO(this)
 
-        fetchAndParseApiResponse(intent.getLongExtra(CustomViewHolder.location_id_key, -1))
+        val id = intent.getLongExtra(CustomViewHolder.location_id_key, -1)
+        fetchAndParseApiResponse(id)
         location_name.text = intent.getStringExtra(CustomViewHolder.location_title_key)
         location_description.resetLoader()
 

@@ -1,16 +1,16 @@
 package com.example.exam
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.example.exam.api.ApiServiceInterface
 import com.example.exam.db.LocationDAO
 import com.example.exam.gson.Location
 import com.example.exam.gson.Locations
 import com.example.exam.utils.Utils
-import kotlinx.coroutines.*
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -23,6 +23,8 @@ class SplashScreenActivity : AppCompatActivity() {
     private lateinit var locationDAO: LocationDAO
 
 
+    private var count = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
@@ -30,19 +32,21 @@ class SplashScreenActivity : AppCompatActivity() {
 
         locationDAO = LocationDAO(this)
 
+        //Check if network is available,
+        //if available, check if locations have already been cached
         if (Utils.isNetworkAvailable(this)) {
             if (locationDAO.checkIfDataHasBeenCached()) {
-                startMainActivity()
 
+                //Then start main activity
+                startMainActivity()
             } else {
                 fetchAndParseApiResponse()
-
             }
         } else {
             Toast.makeText(
                 this, "No network available, please restart the app.",
                 Toast.LENGTH_LONG
-            ).show();
+            ).show()
         }
 
 
@@ -71,15 +75,13 @@ class SplashScreenActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val locations: Locations? = response.body()
                     locations!!.features.forEach {
-
                         locationsToAdd.add(
                             Location(
-                                it.properties?.id,
-                                it.properties?.name,
-                                it.properties?.icon,
-                                it.properties?.id,
-                                it.geometry?.coordinates?.get(0),
-                                it.geometry?.coordinates?.get(1)
+                                it.properties.id,
+                                it.properties.name,
+                                it.properties.icon,
+                                it.geometry.coordinates[0],
+                                it.geometry.coordinates[1]
                             )
                         )
                     }

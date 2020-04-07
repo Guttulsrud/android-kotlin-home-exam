@@ -4,9 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.DatabaseUtils
-import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
-import com.example.exam.db.LocationTable.COLUMN_API_ID
 import com.example.exam.db.LocationTable.COLUMN_ICON
 import com.example.exam.db.LocationTable.COLUMN_ID
 import com.example.exam.db.LocationTable.COLUMN_LATITUDE
@@ -21,7 +19,6 @@ object LocationTable : BaseColumns {
     const val COLUMN_ID = "_id"
     const val COLUMN_NAME = "name"
     const val COLUMN_ICON = "icon"
-    const val COLUMN_API_ID = "nfl_id"
     const val COLUMN_LONGITUDE = "longitude"
     const val COLUMN_LATITUDE = "latitude"
 }
@@ -29,7 +26,6 @@ object LocationTable : BaseColumns {
 var run: Boolean = false
 
 class LocationDAO(context: Context) : Database(context) {
-
 
 
     fun insertLocationsAll(locations: MutableList<Location>) {
@@ -40,9 +36,9 @@ class LocationDAO(context: Context) : Database(context) {
                 db.beginTransaction()
                 for (location in locations) {
                     val contentValues = ContentValues()
+                    contentValues.put(COLUMN_ID, location.id)
                     contentValues.put(COLUMN_NAME, location.name)
                     contentValues.put(COLUMN_ICON, location.icon)
-                    contentValues.put(COLUMN_API_ID, location.apiId)
                     contentValues.put(COLUMN_LONGITUDE, location.longitude)
                     contentValues.put(COLUMN_LATITUDE, location.latitude)
                     db.insert(TABLE_NAME, null, contentValues)
@@ -51,11 +47,10 @@ class LocationDAO(context: Context) : Database(context) {
                 db.setTransactionSuccessful()
             } catch (e: Exception) {
                 println(e.message)
-
                 //todo: proper exception catch
             } finally {
+
                 db.endTransaction()
-                println("db.endTransaction()")
                 run = true
             }
         }
@@ -77,39 +72,54 @@ class LocationDAO(context: Context) : Database(context) {
 //        }
 //    }
 
-    fun getLocationsAll(): MutableList<Location> {
+    fun getLocationsAll(): List<Location> {
 
-        val cursor: Cursor = readableDatabase.query(TABLE_NAME, null, null, null, null, null, null)
+        val cursor: Cursor = readableDatabase.query(TABLE_NAME, null, null, null, null, null, "")
         val locationList = mutableListOf<Location>()
         with(cursor) {
             while (moveToNext()) {
-                val id = getLong(getColumnIndexOrThrow(COLUMN_ID))
-                val name = getString(getColumnIndexOrThrow(COLUMN_NAME))
-                val icon = getString(getColumnIndexOrThrow(COLUMN_ICON))
-                val apiId = getLong(getColumnIndexOrThrow(COLUMN_API_ID))
-                val longitude = getDouble(getColumnIndexOrThrow(COLUMN_LONGITUDE))
-                val latitude = getDouble(getColumnIndexOrThrow(COLUMN_LATITUDE))
+                locationList.add(
+                    Location(
+                        getLong(getColumnIndexOrThrow(COLUMN_ID)),
+                        getString(getColumnIndexOrThrow(COLUMN_NAME)),
+                        getString(getColumnIndexOrThrow(COLUMN_ICON)),
+                        getDouble(getColumnIndexOrThrow(COLUMN_LONGITUDE)),
+                        getDouble(getColumnIndexOrThrow(COLUMN_LATITUDE))
+                    )
+                )
+            }
+        }
+        return locationList
+    }
 
-                locationList.add(Location(id, name, icon, apiId, longitude, latitude))
+    fun getLocationsAllSorted(query: String?): List<Location> {
+
+        val cursor: Cursor =
+            readableDatabase.query(TABLE_NAME, null, null, null, null, null, query)
+        val locationList = mutableListOf<Location>()
+        with(cursor) {
+            while (moveToNext()) {
+                locationList.add(
+                    Location(
+                        getLong(getColumnIndexOrThrow(COLUMN_ID)),
+                        getString(getColumnIndexOrThrow(COLUMN_NAME)),
+                        getString(getColumnIndexOrThrow(COLUMN_ICON)),
+                        getDouble(getColumnIndexOrThrow(COLUMN_LONGITUDE)),
+                        getDouble(getColumnIndexOrThrow(COLUMN_LATITUDE))
+                    )
+                )
             }
         }
         return locationList
     }
 
 
-    fun getLocationByName(query: String): MutableList<Location> {
+    fun getLocationByName(query: String): List<Location> {
         val locationList = mutableListOf<Location>()
 
         val cursor: Cursor = readableDatabase.query(
             TABLE_NAME,
-            arrayOf(
-                COLUMN_ID,
-                COLUMN_NAME,
-                COLUMN_ICON,
-                COLUMN_API_ID,
-                COLUMN_LATITUDE,
-                COLUMN_LONGITUDE
-            ),
+            arrayOf(COLUMN_ID, COLUMN_NAME, COLUMN_ICON, COLUMN_LATITUDE, COLUMN_LONGITUDE),
             "name LIKE '%$query%'",
             null,
             null,
@@ -117,19 +127,19 @@ class LocationDAO(context: Context) : Database(context) {
             null
         )
 
-
         with(cursor) {
             while (moveToNext()) {
-                val id = getLong(getColumnIndexOrThrow(COLUMN_ID))
-                val name = getString(getColumnIndexOrThrow(COLUMN_NAME))
-                val icon = getString(getColumnIndexOrThrow(COLUMN_ICON))
-                val apiId = getLong(getColumnIndexOrThrow(COLUMN_API_ID))
-                val longitude = getDouble(getColumnIndexOrThrow(COLUMN_LONGITUDE))
-                val latitude = getDouble(getColumnIndexOrThrow(COLUMN_LATITUDE))
-                locationList.add(Location(id, name, icon, apiId, longitude, latitude))
+                locationList.add(
+                    Location(
+                        getLong(getColumnIndexOrThrow(COLUMN_ID)),
+                        getString(getColumnIndexOrThrow(COLUMN_NAME)),
+                        getString(getColumnIndexOrThrow(COLUMN_ICON)),
+                        getDouble(getColumnIndexOrThrow(COLUMN_LONGITUDE)),
+                        getDouble(getColumnIndexOrThrow(COLUMN_LATITUDE))
+                    )
+                )
             }
         }
-
         return locationList
     }
 

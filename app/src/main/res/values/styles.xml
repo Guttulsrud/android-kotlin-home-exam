@@ -20,6 +20,9 @@
         <item name="android:ellipsize">end</item>
     </style>
 
+    <style name="spinnerDropDownItemStyle" parent="android:TextAppearance.Widget.TextView.SpinnerItem">
+
+    </style>
 
 
     <style name="bodyStyle">

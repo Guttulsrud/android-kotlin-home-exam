@@ -24,84 +24,26 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         recyclerView_main.layoutManager = LinearLayoutManager(this)
+
         locationDAO = LocationDAO(this)
-
         allLocations = locationDAO.getLocationsAll()
-
 
         displayLocationsInRecyclerView()
         setSearchViewOnQueryTextListener()
         createAndDisplaySpinner()
 
-
     }
 
-    private fun createAndDisplaySpinner() {
-
-        val sortTypes = resources.getStringArray(R.array.mode)
-
-        spinner.adapter =
-            ArrayAdapter(
-                this,
-                android.R.layout.simple_spinner_item,
-                sortTypes
-            )
-        (spinner.adapter as ArrayAdapter<*>).setDropDownViewResource(R.layout.spinner)
-
-
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-
-
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-
-                when (sortTypes[position]) {
-                    sortTypes[0] -> getAndDisplayLocationsAll()
-                    sortTypes[1] -> getAndDisplayLocationsAll("icon")
-                    sortTypes[2] -> getAndDisplayLocationsAll("name", "asc")
-                    sortTypes[3] -> getAndDisplayLocationsAll("name", "desc")
-                }
-            }
-
-            override fun onNothingSelected(p0: AdapterView<*>?) {
-                (spinner.adapter as ArrayAdapter<*>).setDropDownViewResource(R.layout.spinner)
-            }
-        }
-    }
-
-    private fun displayLocationsInRecyclerView() {
-        locationsInRecyclerView.clear()
-        locationsInRecyclerView.addAll(allLocations)
-        recyclerView_main.adapter = MainAdapter(locationsInRecyclerView)
-        recyclerView_main.adapter?.notifyDataSetChanged()
-    }
-
-
-    private fun getAndDisplayLocationsAll(query: String? = null, ascDesc: String? = null) {
-        allLocations = if (!ascDesc.isNullOrEmpty()) {
-            locationDAO.getLocationsAllSorted("$query $ascDesc")
-        } else {
-            locationDAO.getLocationsAllSorted(query)
-        }
-        displayLocationsInRecyclerView()
-    }
-
-
+    //Function for searching DB with search view
     private fun setSearchViewOnQueryTextListener() {
         search_view.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return search_view.isIconified
             }
-
             override fun onQueryTextChange(searchText: String?): Boolean {
                 locationsInRecyclerView.clear()
 
                 if (searchText!!.toLowerCase(Locale.ROOT).isNotEmpty()) {
-
                     val locations: List<Location> =
                         locationDAO.getLocationByName(searchText.toLowerCase(Locale.ROOT))
                     locationsInRecyclerView.addAll(locations)
@@ -116,6 +58,52 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         })
+    }
+
+    //Function for creating and display spinner
+    private fun createAndDisplaySpinner() {
+        val sortTypes = resources.getStringArray(R.array.mode)
+        spinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, sortTypes)
+        (spinner.adapter as ArrayAdapter<*>).setDropDownViewResource(R.layout.spinner);
+
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                when (sortTypes[position]) {
+                    sortTypes[0] -> getAndDisplayLocationsAll()
+                    sortTypes[1] -> getAndDisplayLocationsAll("icon")
+                    sortTypes[2] -> getAndDisplayLocationsAll("name", "asc")
+                    sortTypes[3] -> getAndDisplayLocationsAll("name", "desc")
+                }
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+                (spinner.adapter as ArrayAdapter<*>).setDropDownViewResource(R.layout.spinner)
+            }
+        }
+    }
+
+    //Function for displaying locations in recyclerview
+    private fun displayLocationsInRecyclerView() {
+        locationsInRecyclerView.clear()
+        locationsInRecyclerView.addAll(allLocations)
+        recyclerView_main.adapter = MainAdapter(locationsInRecyclerView)
+        recyclerView_main.adapter?.notifyDataSetChanged()
+    }
+
+    //Function for getting locations from DB, with optional query. Could optionally be done in DAO
+    private fun getAndDisplayLocationsAll(query: String? = null, ascDesc: String? = null) {
+        allLocations = if (!ascDesc.isNullOrEmpty()) {
+            locationDAO.getLocationsAllSorted("$query $ascDesc")
+        } else {
+            locationDAO.getLocationsAllSorted(query)
+        }
+        displayLocationsInRecyclerView()
     }
 
     //Setting app to fullscreen

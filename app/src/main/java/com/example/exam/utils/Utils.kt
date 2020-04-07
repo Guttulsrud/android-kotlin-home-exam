@@ -12,4 +12,7 @@ object Utils {
         val activeNetworkInfo = connectivityManager!!.activeNetworkInfo
         return activeNetworkInfo != null && activeNetworkInfo.isConnected
     }
+
+
+    //todo:remove deprecated methods
 }

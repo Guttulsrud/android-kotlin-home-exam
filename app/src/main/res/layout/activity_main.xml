@@ -33,6 +33,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Spinner
+        style="@style/Widget.AppCompat.DropDownItem.Spinner"
         android:id="@+id/spinner"
         android:layout_width="0dp"
         android:layout_height="0dp"

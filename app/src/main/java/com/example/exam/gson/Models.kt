@@ -7,6 +7,7 @@ data class Locations(
     data class Location(
         var properties: Properties,
         var geometry: Geometry
+
     )
 
     data class Properties(
@@ -38,4 +39,12 @@ data class PlaceDetails(
     val comments: String,
     val banner: String
 )
+
+data class Details(
+    var id: Long,
+    val name: String,
+    val comments: String,
+    val banner: String
+)
+
 

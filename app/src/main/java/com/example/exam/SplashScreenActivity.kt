@@ -42,7 +42,6 @@ class SplashScreenActivity : AppCompatActivity() {
 
 
     private fun fetchAndParseApiResponse() {
-
         val api = Retrofit.Builder()
             .baseUrl("https://www.noforeignland.com/home/api/")
             .addConverterFactory(GsonConverterFactory.create())
@@ -68,7 +67,6 @@ class SplashScreenActivity : AppCompatActivity() {
                     }
 
                     locationDAO.insertLocationsAll(locationsToAdd)
-
                     while(!isFinishing) {
                         startMainActivity()
                     }
@@ -99,6 +97,4 @@ class SplashScreenActivity : AppCompatActivity() {
             window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN)
         }
     }
-
-
 }

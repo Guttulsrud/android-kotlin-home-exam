@@ -38,6 +38,7 @@ class MainAdapter(private val listFeed: MutableList<Location>) :
             holder.view.mapsButton.context.startActivity(intent)
         }
 
+        // Getting corresponding icon and setting for the view icon
         holder.view.icon.setImageDrawable(
             ContextCompat.getDrawable(
                 context, context.resources.getIdentifier(
@@ -66,6 +67,7 @@ class CustomViewHolder(val view: View, var location: Location? = null) :
     }
 
     init {
+        //Sending data to next activity with intent
         view.setOnClickListener {
             val intent = Intent(view.context, LocationDetailsActivity::class.java)
             intent.putExtra(location_title_key, location?.name)

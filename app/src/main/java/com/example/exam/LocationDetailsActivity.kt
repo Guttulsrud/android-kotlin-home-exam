@@ -13,6 +13,9 @@ import com.example.exam.Models.Details
 import com.example.exam.Models.LocationDetails
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_location_details.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -34,7 +37,7 @@ class LocationDetailsActivity : AppCompatActivity() {
         location_description.resetLoader()
         setMapsButtonListener()
 
-        if (locationDAO.checkifExists(id)) {
+        if (locationDAO.checkIfDetailsAreCached(id.toString())) {
 
             val details: Details? = locationDAO.getDetailsOne(id.toString())
             val comments = details?.comments?.let {
@@ -90,13 +93,6 @@ class LocationDetailsActivity : AppCompatActivity() {
 
                     val locationDetails: LocationDetails? = response.body()
                     locationDetails?.let {
-                        locationDAO.insertDetailsOne(
-                            Details(intent.getLongExtra(CustomViewHolder.location_id_key, -1),
-                                intent.getStringExtra(CustomViewHolder.location_title_key),
-                                it.place.comments,
-                                it.place.banner
-                            )
-                        )
 
                         val comments = HtmlCompat.fromHtml(
                             it.place.comments,
@@ -104,7 +100,8 @@ class LocationDetailsActivity : AppCompatActivity() {
                         )
 
                         if (!comments.isBlank()) location_description.text =
-                            comments else location_description.text = R.string.no_comments.toString()
+                            comments else location_description.text =
+                            R.string.no_comments.toString()
 
                         if (it.place.banner.isNotEmpty()) {
                             Picasso.get()
@@ -114,6 +111,17 @@ class LocationDetailsActivity : AppCompatActivity() {
                                 .into(location_image)
                         } else {
                             location_image.visibility = View.GONE
+                        }
+
+                        CoroutineScope(IO).launch {
+                            locationDAO.insertDetailsOne(
+                                Details(
+                                    intent.getLongExtra(CustomViewHolder.location_id_key, -1),
+                                    intent.getStringExtra(CustomViewHolder.location_title_key),
+                                    it.place.comments,
+                                    it.place.banner
+                                )
+                            )
                         }
                     }
                 }

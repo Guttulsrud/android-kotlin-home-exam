@@ -45,10 +45,9 @@ class MainActivity : AppCompatActivity() {
 
                 if (searchText!!.toLowerCase(Locale.ROOT).isNotEmpty()) {
                     val locations: MutableList<Location> =
-                        locationDAO.getLocationByQuery(searchText.toLowerCase(Locale.ROOT))
+                        locationDAO.getLocationsByName(searchText.toLowerCase(Locale.ROOT))
                     locationsInRecyclerView.addAll(locations)
                     recyclerView_main.adapter?.notifyDataSetChanged()
-
 
                 } else {
                     locationsInRecyclerView.clear()
@@ -97,17 +96,17 @@ class MainActivity : AppCompatActivity() {
         recyclerView_main.adapter?.notifyDataSetChanged()
     }
 
-    //Function for getting locations from DB, with optional query. Could optionally be done in DAO
+    //Function for getting locations from DB, with optional query
     private fun getAndDisplayLocationsAll(query: String? = null, ascDesc: String? = null) {
         allLocations = if (!ascDesc.isNullOrEmpty()) {
-            locationDAO.getLocationsAllSorted("$query $ascDesc")
+            locationDAO.getLocationsAll("$query $ascDesc")
         } else {
-            locationDAO.getLocationsAllSorted(query)
+            locationDAO.getLocationsAll(query)
         }
         displayLocationsInRecyclerView()
     }
 
-    //Function for getting locations from DB, with optional query. Could optionally be done in DAO
+    //Function for getting locations from DB, with optional query
     private fun getAndDisplayHistoryLocations() {
         val detailsList = locationDAO.getDetailsAll()
         val locationsToAdd:MutableList<Location> = ArrayList()

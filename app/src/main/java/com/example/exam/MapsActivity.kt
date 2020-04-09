@@ -16,11 +16,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    companion object {
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
-    }
+
 
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -34,39 +32,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
     }
 
-    private fun setUpMap() {
-        if (ActivityCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
-            return
-        }
 
-    }
 
     override fun onMapReady(googleMap: GoogleMap) {
-        setUpMap()
         map = googleMap
-
         val latitude = intent.getDoubleExtra("latitude", 0.0)
         val longitude = intent.getDoubleExtra("longitude", 0.0)
         val locationName = intent.getStringExtra("title")
-
-
         val marker = LatLng(latitude,longitude)
+
         map.addMarker(MarkerOptions().position(marker).title(locationName))
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(marker, 15f))
         map.uiSettings.isZoomControlsEnabled = true
-        map.setOnMarkerClickListener(this)
-
-
     }
-
-    override fun onMarkerClick(p0: Marker?) = false
 
     //Setting app to fullscreen
     override fun onWindowFocusChanged(hasFocus: Boolean) {

@@ -8,6 +8,7 @@ import retrofit2.http.Query
 
 interface ApiServiceInterface {
 
+    //Retrofit interface for API calls
     @GET("v1/places")
     fun getLocationsAll(): Call<Locations>
 

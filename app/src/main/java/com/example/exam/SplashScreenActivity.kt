@@ -28,10 +28,10 @@ class SplashScreenActivity : AppCompatActivity() {
         locationDAO = LocationDAO(this)
 
         //Check if network is available,
-        //if available, che 3304ck if locations have already been cached
+        //if available, check if locations have already been cached
         if (Utils.isNetworkAvailable(this)) {
             if (locationDAO.checkIfDataHasBeenCached()) startMainActivity()
-            else fetchAndParseApiResponse()
+            else getAndCacheApiResponse()
         } else {
             Toast.makeText(
                 this, "No network available, please restart the app.",
@@ -40,8 +40,8 @@ class SplashScreenActivity : AppCompatActivity() {
         }
     }
 
-
-    private fun fetchAndParseApiResponse() {
+    //Fetching response from API, putting in DB
+    private fun getAndCacheApiResponse() {
         val api = Retrofit.Builder()
             .baseUrl("https://www.noforeignland.com/home/api/")
             .addConverterFactory(GsonConverterFactory.create())
@@ -70,7 +70,6 @@ class SplashScreenActivity : AppCompatActivity() {
                     while(!isFinishing) {
                         startMainActivity()
                     }
-
                 }
             }
 
@@ -80,7 +79,6 @@ class SplashScreenActivity : AppCompatActivity() {
                     Toast.LENGTH_LONG
                 ).show()
             }
-
         })
     }
 

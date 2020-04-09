@@ -10,17 +10,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.exam.LocationDetailsActivity
 import com.example.exam.MapsActivity
 import com.example.exam.R
-import com.example.exam.gson.Location
+import com.example.exam.Models.Location
 import kotlinx.android.synthetic.main.location_row.view.*
 import java.util.*
 
 
 class MainAdapter(private val listFeed: MutableList<Location>) :
     RecyclerView.Adapter<CustomViewHolder>() {
-
-    override fun getItemCount(): Int {
-        return listFeed.count()
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CustomViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -33,9 +29,9 @@ class MainAdapter(private val listFeed: MutableList<Location>) :
         val location = listFeed[position]
         holder.view.textView_location_title?.text = location.name
 
+        // OnClickListener for activating map activity with location
         holder.view.mapsButton.setOnClickListener {
             val intent = Intent(holder.view.mapsButton.context, MapsActivity::class.java)
-
             intent.putExtra("longitude", location.longitude)
             intent.putExtra("latitude", location.latitude)
             intent.putExtra("title", location.name)
@@ -44,8 +40,7 @@ class MainAdapter(private val listFeed: MutableList<Location>) :
 
         holder.view.icon.setImageDrawable(
             ContextCompat.getDrawable(
-                context,
-                context.resources.getIdentifier(
+                context, context.resources.getIdentifier(
                     location.icon?.toLowerCase(Locale.ROOT),
                     "drawable",
                     context.packageName
@@ -53,12 +48,12 @@ class MainAdapter(private val listFeed: MutableList<Location>) :
             )
         )
         holder.location = location
-
-
     }
 
+    override fun getItemCount(): Int {
+        return listFeed.count()
+    }
 }
-
 
 class CustomViewHolder(val view: View, var location: Location? = null) :
     RecyclerView.ViewHolder(view) {

@@ -3,16 +3,16 @@ package com.example.exam
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
 import com.example.exam.adapters.CustomViewHolder
 import com.example.exam.api.ApiServiceInterface
 import com.example.exam.db.LocationDAO
-import com.example.exam.gson.Details
-import com.example.exam.gson.LocationDetails
+import com.example.exam.Models.Details
+import com.example.exam.Models.LocationDetails
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_location_details.*
-import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -29,58 +29,45 @@ class LocationDetailsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_location_details)
         locationDAO = LocationDAO(this)
 
-
         val id = intent.getLongExtra(CustomViewHolder.location_id_key, -1)
         location_name.text = intent.getStringExtra(CustomViewHolder.location_title_key)
         location_description.resetLoader()
-
         setMapsButtonListener()
 
         if (locationDAO.checkifExists(id)) {
-            println("do exist, get from DB")
 
-            val details: Details? = locationDAO.getDetailsOne(id)
-
+            val details: Details? = locationDAO.getDetailsOne(id.toString())
             val comments = details?.comments?.let {
-                HtmlCompat.fromHtml(
-                    it,
-                    HtmlCompat.FROM_HTML_MODE_LEGACY
-                )
+                HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY)
             }
 
-            if (comments != null) {
-                if (!comments.isBlank()) location_description.text =
-                    comments else location_description.text = "No comments!"
-            }
+            if (details?.banner?.isNotEmpty()!!) {
+                Picasso.get()
+                    .load(details.banner)
+                    .placeholder(R.drawable.placeholder)
+                    .fit()
+                    .into(location_image)
 
-            if (details != null) {
-                if (details.banner.isNotEmpty()) {
-
-                    Picasso.get()
-                        .load(details.banner)
-                        .placeholder(R.drawable.placeholder)
-                        .fit()
-                        .into(location_image)
-                } else {
-                    location_image.visibility = View.GONE
-                }
+            } else {
+                location_image.visibility = View.GONE
             }
+            if (!comments?.isBlank()!!) location_description.text =
+                comments else location_description.text = R.string.no_comments.toString()
         } else {
-            fetchAndParseApiResponse(intent.getLongExtra(CustomViewHolder.location_id_key, -1))
-            println("Never clicked, fetch that shit")
+            fetchAndParseApiResponse(id)
         }
-
-
-
-
     }
 
     private fun setMapsButtonListener() {
         openMaps.setOnClickListener {
+            val title = intent.getStringExtra(CustomViewHolder.location_title_key)
+            val latitude = intent.getDoubleExtra(CustomViewHolder.latitude, 0.0)
+            val longitude = intent.getDoubleExtra(CustomViewHolder.longitude, 0.0)
+
             val intent = Intent(openMaps.context, MapsActivity::class.java)
-            intent.putExtra("latitude", intent.getDoubleExtra(CustomViewHolder.latitude, 0.0))
-            intent.putExtra("longitude", intent.getDoubleExtra(CustomViewHolder.longitude, 0.0))
-            intent.putExtra("title", intent.getStringExtra(CustomViewHolder.location_title_key))
+            intent.putExtra("latitude", latitude)
+            intent.putExtra("longitude", longitude)
+            intent.putExtra("title", title)
             openMaps.context.startActivity(intent)
         }
     }
@@ -101,22 +88,15 @@ class LocationDetailsActivity : AppCompatActivity() {
             ) {
                 if (response.isSuccessful) {
 
-
                     val locationDetails: LocationDetails? = response.body()
                     locationDetails?.let {
-
-
-
-
-                        locationDAO.insertDetailsOne(Details(
-                            intent.getLongExtra(
-                                CustomViewHolder.location_id_key,
-                                -1
-                            ),
-                            intent.getStringExtra(CustomViewHolder.location_title_key),
-                            it.place.comments,
-                            it.place.banner
-                        ))
+                        locationDAO.insertDetailsOne(
+                            Details(intent.getLongExtra(CustomViewHolder.location_id_key, -1),
+                                intent.getStringExtra(CustomViewHolder.location_title_key),
+                                it.place.comments,
+                                it.place.banner
+                            )
+                        )
 
                         val comments = HtmlCompat.fromHtml(
                             it.place.comments,
@@ -124,7 +104,7 @@ class LocationDetailsActivity : AppCompatActivity() {
                         )
 
                         if (!comments.isBlank()) location_description.text =
-                            comments else location_description.text = "No comments!"
+                            comments else location_description.text = R.string.no_comments.toString()
 
                         if (it.place.banner.isNotEmpty()) {
                             Picasso.get()
@@ -140,7 +120,11 @@ class LocationDetailsActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<LocationDetails>, t: Throwable) {
-                TODO("Not yet implemented")
+                Toast.makeText(
+                    this@LocationDetailsActivity,
+                    "Failed to make service request. Please try again!",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         })
     }

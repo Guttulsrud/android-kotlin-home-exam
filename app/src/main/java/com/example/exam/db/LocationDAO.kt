@@ -16,8 +16,8 @@ import com.example.exam.db.LocationTable.LOCATION_LONGITUDE
 import com.example.exam.db.LocationTable.LOCATIONS_TABLE
 import com.example.exam.db.LocationTable.LOCATION_ID
 import com.example.exam.db.LocationTable.LOCATION_NAME
-import com.example.exam.gson.Details
-import com.example.exam.gson.Location
+import com.example.exam.Models.Details
+import com.example.exam.Models.Location
 
 
 object LocationTable : BaseColumns {
@@ -89,16 +89,15 @@ class LocationDAO(context: Context) : Database(context) {
 
             db.endTransaction()
         }
-
     }
 
-    fun getDetailsOne(id: Long): Details? {
+    fun getDetailsOne(id: String): Details? {
         val cursor: Cursor =
             readableDatabase.query(
                 DETAILS_TABLE,
                 null,
                 "_id LIKE ?",
-                arrayOf(id.toString()),
+                arrayOf(id),
                 null,
                 null,
                 ""
@@ -129,8 +128,6 @@ class LocationDAO(context: Context) : Database(context) {
                 ""
             )
         with(cursor) {
-
-
             while (moveToNext()) {
                 locationList.add(
                     Details(
@@ -145,8 +142,27 @@ class LocationDAO(context: Context) : Database(context) {
         return cursor.count > 0
     }
 
+    fun getDetailsAll(): List<Details> {
+        val detailsList = mutableListOf<Details>()
+        val cursor: Cursor =
+            readableDatabase.query(DETAILS_TABLE, null, null, null, null, null, null)
+        with(cursor) {
+            while (moveToNext()) {
+                detailsList.add(
+                    Details(
+                        getLong(getColumnIndexOrThrow(DETAILS_ID)),
+                        getString(getColumnIndexOrThrow(DETAILS_NAME)),
+                        getString(getColumnIndexOrThrow(DETAILS_COMMENTS)),
+                        getString(getColumnIndexOrThrow(DETAILS_BANNER))
+                    )
+                )
+            }
+        }
+        return detailsList
+    }
 
-    fun getLocationsAll(): List<Location> {
+
+    fun getLocationsAll(): MutableList<Location> {
         val locationList = mutableListOf<Location>()
         val cursor: Cursor =
             readableDatabase.query(LOCATIONS_TABLE, null, null, null, null, null, "")
@@ -166,7 +182,7 @@ class LocationDAO(context: Context) : Database(context) {
         return locationList
     }
 
-    fun getLocationsAllSorted(query: String?): List<Location> {
+    fun getLocationsAllSorted(query: String?): MutableList<Location> {
         val locationList = mutableListOf<Location>()
         val cursor: Cursor =
             readableDatabase.query(LOCATIONS_TABLE, null, null, null, null, null, query)
@@ -187,7 +203,7 @@ class LocationDAO(context: Context) : Database(context) {
     }
 
 
-    fun getLocationByName(query: String): List<Location> {
+    fun getLocationByQuery(query: String): MutableList<Location> {
         val locationList = mutableListOf<Location>()
 
         val cursor: Cursor = readableDatabase.query(
@@ -220,6 +236,31 @@ class LocationDAO(context: Context) : Database(context) {
             }
         }
         return locationList
+    }
+
+    fun getLocationById(id: Long): Location? {
+        val cursor: Cursor =
+            readableDatabase.query(
+                LOCATIONS_TABLE,
+                null,
+                "_id LIKE ?",
+                arrayOf(id.toString()),
+                null,
+                null,
+                ""
+            )
+        with(cursor) {
+            if (cursor.moveToFirst()) {
+                return Location(
+                    getLong(getColumnIndexOrThrow(LOCATION_ID)),
+                    getString(getColumnIndexOrThrow(LOCATION_NAME)),
+                    getString(getColumnIndexOrThrow(LOCATION_ICON)),
+                    getDouble(getColumnIndexOrThrow(LOCATION_LONGITUDE)),
+                    getDouble(getColumnIndexOrThrow(LOCATION_LATITUDE))
+                )
+            }
+        }
+        return null
     }
 
     fun checkIfDataHasBeenCached(): Boolean {

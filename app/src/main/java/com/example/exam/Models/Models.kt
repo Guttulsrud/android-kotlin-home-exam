@@ -1,4 +1,4 @@
-package com.example.exam.gson
+package com.example.exam.Models
 
 data class Locations(
     val features: List<Location>
@@ -42,7 +42,7 @@ data class PlaceDetails(
 
 data class Details(
     var id: Long,
-    val name: String,
+    val name: String?,
     val comments: String,
     val banner: String
 )

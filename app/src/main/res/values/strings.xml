@@ -9,13 +9,13 @@
     <string name="title_activity_search">Search</string>
     <string name="searchable_hint">Enter query</string>
     <string name="search">Search</string>
-    <string name="noforeignland">NoForeignLand</string>
 
     <string-array name="mode">
         <item>Default sort</item>
         <item>Sort by category</item>
         <item>Sort by name ascending</item>
         <item>Sort by name descending</item>
+        <item>Get previously visited</item>
     </string-array>
 </resources>
 

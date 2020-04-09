@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.exam.adapters.MainAdapter
 import com.example.exam.db.LocationDAO
-import com.example.exam.gson.Location
+import com.example.exam.Models.Location
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -17,7 +17,7 @@ import kotlin.collections.ArrayList
 class MainActivity : AppCompatActivity() {
 
     private lateinit var locationDAO: LocationDAO
-    lateinit var allLocations: List<Location>
+    lateinit var allLocations: MutableList<Location>
     var locationsInRecyclerView: MutableList<Location> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,8 +44,8 @@ class MainActivity : AppCompatActivity() {
                 locationsInRecyclerView.clear()
 
                 if (searchText!!.toLowerCase(Locale.ROOT).isNotEmpty()) {
-                    val locations: List<Location> =
-                        locationDAO.getLocationByName(searchText.toLowerCase(Locale.ROOT))
+                    val locations: MutableList<Location> =
+                        locationDAO.getLocationByQuery(searchText.toLowerCase(Locale.ROOT))
                     locationsInRecyclerView.addAll(locations)
                     recyclerView_main.adapter?.notifyDataSetChanged()
 
@@ -79,6 +79,7 @@ class MainActivity : AppCompatActivity() {
                     sortTypes[1] -> getAndDisplayLocationsAll("icon")
                     sortTypes[2] -> getAndDisplayLocationsAll("name", "asc")
                     sortTypes[3] -> getAndDisplayLocationsAll("name", "desc")
+                    sortTypes[4] -> getAndDisplayHistoryLocations()
                 }
             }
 
@@ -103,6 +104,21 @@ class MainActivity : AppCompatActivity() {
         } else {
             locationDAO.getLocationsAllSorted(query)
         }
+        displayLocationsInRecyclerView()
+    }
+
+    //Function for getting locations from DB, with optional query. Could optionally be done in DAO
+    private fun getAndDisplayHistoryLocations() {
+        val detailsList = locationDAO.getDetailsAll()
+        val locationsToAdd:MutableList<Location> = ArrayList()
+
+        for (details in detailsList) {
+            locationDAO.getLocationById(details.id)?.let { locationsToAdd.add(it) }
+        }
+
+        allLocations.clear()
+        allLocations = locationsToAdd
+
         displayLocationsInRecyclerView()
     }
 

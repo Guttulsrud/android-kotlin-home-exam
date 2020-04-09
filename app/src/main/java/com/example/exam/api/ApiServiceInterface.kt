@@ -1,7 +1,7 @@
 package com.example.exam.api
 
-import com.example.exam.gson.LocationDetails
-import com.example.exam.gson.Locations
+import com.example.exam.Models.LocationDetails
+import com.example.exam.Models.Locations
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query

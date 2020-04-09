@@ -7,10 +7,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.exam.api.ApiServiceInterface
 import com.example.exam.db.LocationDAO
-import com.example.exam.gson.Location
-import com.example.exam.gson.Locations
+import com.example.exam.Models.Location
+import com.example.exam.Models.Locations
 import com.example.exam.utils.Utils
-import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -29,7 +28,7 @@ class SplashScreenActivity : AppCompatActivity() {
         locationDAO = LocationDAO(this)
 
         //Check if network is available,
-        //if available, check if locations have already been cached
+        //if available, che 3304ck if locations have already been cached
         if (Utils.isNetworkAvailable(this)) {
             if (locationDAO.checkIfDataHasBeenCached()) startMainActivity()
             else fetchAndParseApiResponse()
@@ -78,7 +77,10 @@ class SplashScreenActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<Locations>, t: Throwable) {
-                TODO("Not yet implemented")
+                Toast.makeText(
+                    this@SplashScreenActivity, "Failed to make service request. Please try again!",
+                    Toast.LENGTH_LONG
+                ).show()
             }
 
         })

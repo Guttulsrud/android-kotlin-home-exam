@@ -9,7 +9,6 @@ import com.example.exam.api.ApiServiceInterface
 import com.example.exam.db.LocationDAO
 import com.example.exam.Models.Location
 import com.example.exam.Models.Locations
-import com.example.exam.utils.Utils
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -26,18 +25,8 @@ class SplashScreenActivity : AppCompatActivity() {
         setContentView(R.layout.activity_splash_screen)
 
         locationDAO = LocationDAO(this)
-
-        //Check if network is available,
-        //if available, check if locations have already been cached
-        if (Utils.isNetworkAvailable(this)) {
-            if (locationDAO.checkIfDataHasBeenCached()) startMainActivity()
-            else getAndCacheApiResponse()
-        } else {
-            Toast.makeText(
-                this, "No network available, please restart the app.",
-                Toast.LENGTH_LONG
-            ).show()
-        }
+        if (locationDAO.checkIfDataHasBeenCached()) startMainActivity()
+        else getAndCacheApiResponse()
     }
 
     //Fetching response from API, putting in DB
@@ -67,7 +56,7 @@ class SplashScreenActivity : AppCompatActivity() {
                     }
 
                     locationDAO.insertLocationsAll(locationsToAdd)
-                    while(!isFinishing) {
+                    while (!isFinishing) {
                         startMainActivity()
                     }
                 }

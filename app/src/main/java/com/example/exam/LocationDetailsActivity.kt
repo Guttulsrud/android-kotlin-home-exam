@@ -37,7 +37,7 @@ class LocationDetailsActivity : AppCompatActivity() {
         location_description.resetLoader()
         setMapsButtonListener()
 
-        if (locationDAO.checkIfDetailsAreCached(id.toString())) {
+        if (locationDAO.checkIfDetailsIdExists(id.toString())) {
 
             val details: Details? = locationDAO.getDetailsOne(id.toString())
             val comments = details?.comments?.let {

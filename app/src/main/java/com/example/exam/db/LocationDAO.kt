@@ -44,20 +44,21 @@ class LocationDAO(context: Context) : Database(context) {
     //Inserting all locations
     fun insertLocationsAll(locations: MutableList<Location>) {
         val db = writableDatabase
-
+        val idList: MutableList<Long> = getLocationsIdAll()
         if (!run) {
             try {
                 db.beginTransaction()
                 for (location in locations) {
-                    val contentValues = ContentValues()
-                    contentValues.put(LOCATION_ID, location.id)
-                    contentValues.put(LOCATION_NAME, location.name)
-                    contentValues.put(LOCATION_ICON, location.icon)
-                    contentValues.put(LOCATION_LONGITUDE, location.longitude)
-                    contentValues.put(LOCATION_LATITUDE, location.latitude)
-                    db.insert(LOCATIONS_TABLE, null, contentValues)
+                    if (location.id !in idList) {
+                        val contentValues = ContentValues()
+                        contentValues.put(LOCATION_ID, location.id)
+                        contentValues.put(LOCATION_NAME, location.name)
+                        contentValues.put(LOCATION_ICON, location.icon)
+                        contentValues.put(LOCATION_LONGITUDE, location.longitude)
+                        contentValues.put(LOCATION_LATITUDE, location.latitude)
+                        db.insert(LOCATIONS_TABLE, null, contentValues)
+                    }
                 }
-
                 db.setTransactionSuccessful()
             } catch (e: Exception) {
                 println(e.message)
@@ -114,33 +115,6 @@ class LocationDAO(context: Context) : Database(context) {
         return null
     }
 
-    //Inserting one location details
-    fun checkIfDetailsAreCached(id: String): Boolean {
-        val locationList = mutableListOf<Details>()
-        val cursor: Cursor =
-            readableDatabase.query(
-                DETAILS_TABLE,
-                null,
-                "_id LIKE ?",
-                arrayOf(id),
-                null,
-                null,
-                ""
-            )
-        with(cursor) {
-            while (moveToNext()) {
-                locationList.add(
-                    Details(
-                        getLong(getColumnIndexOrThrow(DETAILS_ID)),
-                        getString(getColumnIndexOrThrow(DETAILS_NAME)),
-                        getString(getColumnIndexOrThrow(DETAILS_BANNER)),
-                        getString(getColumnIndexOrThrow(DETAILS_COMMENTS))
-                    )
-                )
-            }
-        }
-        return cursor.count > 0
-    }
 
     //Getting all location details
     fun getDetailsAll(): List<Details> {
@@ -183,6 +157,27 @@ class LocationDAO(context: Context) : Database(context) {
         return locationList
     }
 
+    private fun getLocationsIdAll(): MutableList<Long> {
+        val locationList = mutableListOf<Long>()
+
+        val cursor: Cursor = readableDatabase.query(
+            LOCATIONS_TABLE,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+
+        with(cursor) {
+            while (moveToNext()) {
+                locationList.add(getLong(getColumnIndexOrThrow(LOCATION_ID)))
+            }
+        }
+        return locationList
+    }
+
     //Getting all locations by given name
     fun getLocationsByName(query: String): MutableList<Location> {
         val locationList = mutableListOf<Location>()
@@ -213,17 +208,11 @@ class LocationDAO(context: Context) : Database(context) {
         return locationList
     }
 
-    fun getLocationById(id: Long): Location? {
-        val cursor: Cursor =
-            readableDatabase.query(
-                LOCATIONS_TABLE,
-                null,
-                "_id LIKE ?",
-                arrayOf(id.toString()),
-                null,
-                null,
-                ""
-            )
+    fun getLocationById(id: String): Location? {
+        val cursor: Cursor = readableDatabase.query(
+            LOCATIONS_TABLE, null, "_id LIKE ?",
+            arrayOf(id), null, null, null
+        )
         with(cursor) {
             if (cursor.moveToFirst()) {
                 return Location(
@@ -236,6 +225,13 @@ class LocationDAO(context: Context) : Database(context) {
             }
         }
         return null
+    }
+
+
+    fun checkIfDetailsIdExists(id: String): Boolean {
+        val cursor: Cursor =
+            readableDatabase.query(DETAILS_TABLE, null, "_id LIKE $id", null, null, null, null)
+        return cursor.count > 0
     }
 
     fun checkIfDataHasBeenCached(): Boolean {

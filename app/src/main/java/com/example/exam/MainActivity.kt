@@ -9,7 +9,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.exam.adapters.MainAdapter
 import com.example.exam.db.LocationDAO
 import com.example.exam.Models.Location
+import com.example.exam.Models.Locations
+import com.example.exam.api.ApiServiceInterface
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -32,6 +44,11 @@ class MainActivity : AppCompatActivity() {
         setSearchViewOnQueryTextListener()
         createAndDisplaySpinner()
 
+
+        //if swipe do this
+        getAndCacheApiResponse()
+
+
     }
 
     //Function for searching DB with search view
@@ -40,6 +57,7 @@ class MainActivity : AppCompatActivity() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return search_view.isIconified
             }
+
             override fun onQueryTextChange(searchText: String?): Boolean {
                 locationsInRecyclerView.clear()
 
@@ -109,10 +127,10 @@ class MainActivity : AppCompatActivity() {
     //Function for getting locations from DB, with optional query
     private fun getAndDisplayHistoryLocations() {
         val detailsList = locationDAO.getDetailsAll()
-        val locationsToAdd:MutableList<Location> = ArrayList()
+        val locationsToAdd: MutableList<Location> = ArrayList()
 
         for (details in detailsList) {
-            locationDAO.getLocationById(details.id)?.let { locationsToAdd.add(it) }
+            locationDAO.getLocationById(details.id.toString())?.let { locationsToAdd.add(it) }
         }
 
         allLocations.clear()
@@ -125,6 +143,49 @@ class MainActivity : AppCompatActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
+
+    //Fetching response from API, putting in DB
+    private fun getAndCacheApiResponse() {
+        val api = Retrofit.Builder()
+            .baseUrl("https://www.noforeignland.com/home/api/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(OkHttpClient.Builder().build())
+            .build()
+            .create(ApiServiceInterface::class.java)
+
+        val locationsToAdd: MutableList<Location> = ArrayList()
+        api.getLocationsAll().enqueue(object : Callback<Locations> {
+            override fun onResponse(call: Call<Locations>, response: Response<Locations>) {
+                if (response.isSuccessful) {
+                    val locations: Locations? = response.body()
+                    locations!!.features.forEach {
+                        locationsToAdd.add(
+                            Location(
+                                it.properties.id,
+                                it.properties.name,
+                                it.properties.icon,
+                                it.geometry.coordinates[0],
+                                it.geometry.coordinates[1]
+                            )
+                        )
+
+
+                    }
+
+                    CoroutineScope(IO).launch {
+                        locationDAO.insertLocationsAll(locationsToAdd)
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<Locations>, t: Throwable) {
+                Toast.makeText(
+                    this@MainActivity, "Failed to make service request. Please try again!",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        })
     }
 
 

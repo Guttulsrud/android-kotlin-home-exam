@@ -2,7 +2,6 @@ package com.example.exam
 
 import android.os.Bundle
 import android.view.View
-import android.view.WindowManager
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,10 +11,6 @@ import com.example.exam.Models.Location
 import com.example.exam.Models.Locations
 import com.example.exam.api.ApiServiceInterface
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -31,25 +26,25 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationDAO: LocationDAO
     lateinit var allLocations: MutableList<Location>
     var locationsInRecyclerView: MutableList<Location> = ArrayList()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         recyclerView_main.layoutManager = LinearLayoutManager(this)
 
         locationDAO = LocationDAO(this)
-        allLocations = locationDAO.getLocationsAll()
 
+
+        allLocations = locationDAO.getLocationsAll("sys_id desc")
         displayLocationsInRecyclerView()
         setSearchViewOnQueryTextListener()
         createAndDisplaySpinner()
 
-
-        //if swipe do this
-        getAndCacheApiResponse()
-
-
+        swiperefresh.setOnRefreshListener {
+            swiperefresh.isRefreshing = true
+            getAndCacheApiResponse()
+        }
     }
+
 
     //Function for searching DB with search view
     private fun setSearchViewOnQueryTextListener() {
@@ -92,11 +87,11 @@ class MainActivity : AppCompatActivity() {
                 id: Long
             ) {
                 when (sortTypes[position]) {
-                    sortTypes[0] -> getAndDisplayLocationsAll()
+                    sortTypes[0] -> getAndDisplayLocationsAll("sys_id", "desc")
                     sortTypes[1] -> getAndDisplayLocationsAll("icon")
                     sortTypes[2] -> getAndDisplayLocationsAll("name", "asc")
                     sortTypes[3] -> getAndDisplayLocationsAll("name", "desc")
-                    sortTypes[4] -> getAndDisplayHistoryLocations()
+                    sortTypes[4] -> getAndDisplayPrevVisitedLocations()
                 }
             }
 
@@ -124,8 +119,9 @@ class MainActivity : AppCompatActivity() {
         displayLocationsInRecyclerView()
     }
 
+
     //Function for getting locations from DB, with optional query
-    private fun getAndDisplayHistoryLocations() {
+    private fun getAndDisplayPrevVisitedLocations() {
         val detailsList = locationDAO.getDetailsAll()
         val locationsToAdd: MutableList<Location> = ArrayList()
 
@@ -135,15 +131,9 @@ class MainActivity : AppCompatActivity() {
 
         allLocations.clear()
         allLocations = locationsToAdd
-
         displayLocationsInRecyclerView()
     }
 
-    //Setting app to fullscreen
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-    }
 
     //Fetching response from API, putting in DB
     private fun getAndCacheApiResponse() {
@@ -159,27 +149,44 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call<Locations>, response: Response<Locations>) {
                 if (response.isSuccessful) {
                     val locations: Locations? = response.body()
+                    val listOfIds = locationDAO.getLocationsIdAll()
                     locations!!.features.forEach {
-                        locationsToAdd.add(
-                            Location(
-                                it.properties.id,
-                                it.properties.name,
-                                it.properties.icon,
-                                it.geometry.coordinates[0],
-                                it.geometry.coordinates[1]
+                        if (it.properties.id !in listOfIds) {
+                            locationsToAdd.add(
+                                Location(
+                                    it.properties.id,
+                                    it.properties.name,
+                                    it.properties.icon,
+                                    it.geometry.coordinates[0],
+                                    it.geometry.coordinates[1]
+                                )
                             )
-                        )
-
-
+                        }
                     }
 
-                    CoroutineScope(IO).launch {
-                        locationDAO.insertLocationsAll(locationsToAdd)
+                    locationDAO.insertLocationsAll(locationsToAdd)
+
+                    runOnUiThread {
+                        if (locationsToAdd.isEmpty()) {
+                            Toast.makeText(
+                                this@MainActivity, "No new locations!",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            allLocations.addAll(locationsToAdd)
+                            Toast.makeText(
+                                this@MainActivity, "${locationsToAdd.size} new locations added!",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            getAndDisplayLocationsAll("sys_id", "desc")
+                        }
+                        swiperefresh.isRefreshing = false
                     }
                 }
             }
 
             override fun onFailure(call: Call<Locations>, t: Throwable) {
+                swiperefresh.isRefreshing = false
                 Toast.makeText(
                     this@MainActivity, "Failed to make service request. Please try again!",
                     Toast.LENGTH_LONG
@@ -187,8 +194,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
-
-
 }
 
 

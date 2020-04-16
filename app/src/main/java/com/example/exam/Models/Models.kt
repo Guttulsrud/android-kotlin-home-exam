@@ -7,7 +7,6 @@ data class Locations(
     data class Location(
         var properties: Properties,
         var geometry: Geometry
-
     )
 
     data class Properties(
@@ -28,7 +27,8 @@ data class Location(
     val name: String?,
     val icon: String?,
     val longitude: Double?,
-    val latitude: Double?
+    val latitude: Double?,
+    val sysId: Long = 0
 )
 
 data class LocationDetails(

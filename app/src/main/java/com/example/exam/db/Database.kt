@@ -12,6 +12,7 @@ import com.example.exam.db.LocationDetailsTable.DETAILS_BANNER
 import com.example.exam.db.LocationDetailsTable.DETAILS_ID
 import com.example.exam.db.LocationDetailsTable.DETAILS_NAME
 import com.example.exam.db.LocationDetailsTable.DETAILS_COMMENTS
+import com.example.exam.db.LocationTable.LOCATION_SYS_ID
 
 const val DATABASE_VERSION: Int = 1
 const val DATABASE_NAME: String = "locations_database"
@@ -26,7 +27,7 @@ open class Database(context: Context) : SQLiteOpenHelper(
 
         //Inserting tables
         val queryCreateLocationsTable =
-            "CREATE TABLE ${LocationTable.LOCATIONS_TABLE} ($LOCATION_ID INTEGER PRIMARY KEY, TEXT, $LOCATION_NAME TEXT, $LOCATION_ICON TEXT, $LOCATION_LONGITUDE TEXT, $LOCATION_LATITUDE TEXT)"
+            "CREATE TABLE ${LocationTable.LOCATIONS_TABLE} ($LOCATION_ID INTEGER, TEXT, $LOCATION_NAME TEXT, $LOCATION_ICON TEXT, $LOCATION_LONGITUDE TEXT, $LOCATION_LATITUDE TEXT, $LOCATION_SYS_ID INTEGER PRIMARY KEY)"
         val queryCreateDetailsTable = "CREATE TABLE ${LocationDetailsTable.DETAILS_TABLE} ($DETAILS_ID INTEGER PRIMARY KEY, TEXT, $DETAILS_NAME TEXT, $DETAILS_BANNER TEXT, $DETAILS_COMMENTS TEXT)"
 
         db?.execSQL(queryCreateLocationsTable)

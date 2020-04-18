@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
 
         swiperefresh.setOnRefreshListener {
             swiperefresh.isRefreshing = true
-            getAndCacheApiResponse()
+            getAndCacheNewLocationsFromApi()
         }
     }
 
@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity() {
 
 
     //Fetching response from API, putting in DB
-    private fun getAndCacheApiResponse() {
+    private fun getAndCacheNewLocationsFromApi() {
         val api = Retrofit.Builder()
             .baseUrl("https://www.noforeignland.com/home/api/")
             .addConverterFactory(GsonConverterFactory.create())
